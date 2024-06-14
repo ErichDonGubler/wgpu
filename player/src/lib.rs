@@ -212,7 +212,7 @@ impl GlobalPlay for wgc::global::Global {
         let (cmd_buf, error) =
             self.command_encoder_finish(encoder, &wgt::CommandBufferDescriptor { label: None });
         if let Some(e) = error {
-            panic!("{e}");
+            panic_with_error_chain(e)
         }
         cmd_buf
     }
@@ -240,7 +240,7 @@ impl GlobalPlay for wgc::global::Global {
             Action::CreateBuffer(id, desc) => {
                 let (_, error) = self.device_create_buffer(device, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::FreeBuffer(id) => {
@@ -252,7 +252,7 @@ impl GlobalPlay for wgc::global::Global {
             Action::CreateTexture(id, desc) => {
                 let (_, error) = self.device_create_texture(device, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::FreeTexture(id) => {
@@ -268,7 +268,7 @@ impl GlobalPlay for wgc::global::Global {
             } => {
                 let (_, error) = self.texture_create_view(parent_id, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyTextureView(id) => {
@@ -277,7 +277,7 @@ impl GlobalPlay for wgc::global::Global {
             Action::CreateSampler(id, desc) => {
                 let (_, error) = self.device_create_sampler(device, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroySampler(id) => {
@@ -292,7 +292,7 @@ impl GlobalPlay for wgc::global::Global {
             Action::CreateBindGroupLayout(id, desc) => {
                 let (_, error) = self.device_create_bind_group_layout(device, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyBindGroupLayout(id) => {
@@ -301,7 +301,7 @@ impl GlobalPlay for wgc::global::Global {
             Action::CreatePipelineLayout(id, desc) => {
                 let (_, error) = self.device_create_pipeline_layout(device, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyPipelineLayout(id) => {
@@ -310,7 +310,7 @@ impl GlobalPlay for wgc::global::Global {
             Action::CreateBindGroup(id, desc) => {
                 let (_, error) = self.device_create_bind_group(device, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyBindGroup(id) => {
@@ -350,7 +350,7 @@ impl GlobalPlay for wgc::global::Global {
                 let (_, error) =
                     self.device_create_compute_pipeline(device, &desc, Some(id), implicit_ids);
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyComputePipeline(id) => {
@@ -371,7 +371,7 @@ impl GlobalPlay for wgc::global::Global {
                 let (_, error) =
                     self.device_create_render_pipeline(device, &desc, Some(id), implicit_ids);
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyRenderPipeline(id) => {
@@ -392,7 +392,7 @@ impl GlobalPlay for wgc::global::Global {
                     Some(id),
                 );
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyRenderBundle(id) => {
@@ -401,7 +401,7 @@ impl GlobalPlay for wgc::global::Global {
             Action::CreateQuerySet { id, desc } => {
                 let (_, error) = self.device_create_query_set(device, &desc, Some(id));
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
             }
             Action::DestroyQuerySet(id) => {
@@ -443,7 +443,7 @@ impl GlobalPlay for wgc::global::Global {
                     Some(comb_manager.process().into_command_encoder_id()),
                 );
                 if let Some(e) = error {
-                    panic!("{e}");
+                    panic_with_error_chain(e)
                 }
                 let cmdbuf = self.encode_commands(encoder, commands);
                 self.queue_submit(queue, &[cmdbuf]).unwrap();
@@ -468,4 +468,31 @@ impl GlobalPlay for wgc::global::Global {
             }
         }
     }
+}
+
+fn panic_with_error_chain<E>(e: E)
+where
+    E: std::error::Error,
+{
+    use std::fmt::Write;
+
+    let mut err_msg = String::new();
+
+    write!(err_msg, "{e}").unwrap();
+
+    if let Some(source) = e.source() {
+        if source.source().is_some() {
+            write!(err_msg, "\nCaused by:").unwrap();
+            let mut prev_err: &dyn std::error::Error = &source;
+            let mut idx = 0u64;
+            while let Some(source) = prev_err.source() {
+                write!(err_msg, "\n  {idx}: {source}").unwrap();
+                idx += 1;
+                prev_err = source;
+            }
+        } else {
+            write!(err_msg, "\nCaused by: {source}").unwrap();
+        }
+    }
+    panic!("encountered error: {err_msg}")
 }
