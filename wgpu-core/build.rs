@@ -10,4 +10,5 @@ fn main() {
         metal: { all(target_vendor = "apple", feature = "metal") },
         vulkan: { all(not(target_arch = "wasm32"), feature = "vulkan") }
     }
+    println!("cargo::rustc-check-cfg=cfg(wgpu_validate_locks)");
 }
