@@ -10,7 +10,7 @@ use std::{
     borrow::Cow,
     collections::BTreeMap,
     ffi::{CStr, CString},
-    mem::{self, size_of, MaybeUninit},
+    mem::{self, MaybeUninit},
     num::NonZeroU32,
     ptr, slice,
     sync::Arc,
