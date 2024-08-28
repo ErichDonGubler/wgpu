@@ -967,8 +967,7 @@ pub enum Binding {
         location: u32,
         /// Indicates the 2nd input to the blender when dual-source blending.
         second_blend_source: bool,
-        interpolation: Option<Interpolation>,
-        sampling: Option<Sampling>,
+        interpolation_and_sampling: Option<(Interpolation, Sampling)>,
     },
 }
 
