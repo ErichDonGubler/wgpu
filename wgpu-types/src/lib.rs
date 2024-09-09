@@ -2168,7 +2168,7 @@ impl BlendState {
 /// Corresponds to [WebGPU `GPUColorTargetState`](
 /// https://gpuweb.github.io/gpuweb/#dictdef-gpucolortargetstate).
 #[repr(C)]
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(bon::Builder, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct ColorTargetState {
@@ -2182,6 +2182,7 @@ pub struct ColorTargetState {
     pub blend: Option<BlendState>,
     /// Mask which enables/disables writes to different color/alpha channel.
     #[cfg_attr(feature = "serde", serde(default))]
+    #[builder(default)]
     pub write_mask: ColorWrites,
 }
 
