@@ -152,6 +152,8 @@ bitflags::bitflags! {
         /// [`AtomicFunction::Exchange { compare: None }`]: crate::AtomicFunction::Exchange
         /// [`Storage`]: crate::AddressSpace::Storage
         const SHADER_FLOAT32_ATOMIC = 1 << 21;
+        /// Support for 16-bit floating-point types.
+        const SHADER_FLOAT16 = 1 << 22;
     }
 }
 
