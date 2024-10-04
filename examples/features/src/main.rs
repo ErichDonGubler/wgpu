@@ -87,6 +87,12 @@ const EXAMPLES: &[ExampleDesc] = &[
         webgpu: true,
     },
     ExampleDesc {
+        name: "shader-f16",
+        function: wgpu_examples::shader_f16::main,
+        webgl: false,
+        webgpu: false,
+    },
+    ExampleDesc {
         name: "shadow",
         function: wgpu_examples::shadow::main,
         webgl: true,
