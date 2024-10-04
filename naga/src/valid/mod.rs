@@ -156,6 +156,8 @@ bitflags::bitflags! {
         const TEXTURE_ATOMIC = 1 << 22;
         /// Support for atomic operations on 64-bit images.
         const TEXTURE_INT64_ATOMIC = 1 << 23;
+        /// Support for 16-bit floating-point types.
+        const SHADER_FLOAT16 = 1 << 24;
     }
 }
 

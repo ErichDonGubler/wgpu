@@ -394,6 +394,7 @@ impl PhysicalDeviceFeatures {
                     vk::PhysicalDeviceShaderFloat16Int8Features::default().shader_float16(true),
                     vk::PhysicalDevice16BitStorageFeatures::default()
                         .storage_buffer16_bit_access(true)
+                        .storage_input_output16(true)
                         .uniform_and_storage_buffer16_bit_access(true),
                 ))
             } else {
@@ -694,7 +695,8 @@ impl PhysicalDeviceFeatures {
                 F::SHADER_F16,
                 f16_i8.shader_float16 != 0
                     && bit16.storage_buffer16_bit_access != 0
-                    && bit16.uniform_and_storage_buffer16_bit_access != 0,
+                    && bit16.uniform_and_storage_buffer16_bit_access != 0
+                    && bit16.storage_input_output16 != 0,
             );
         }
 
