@@ -1,16 +1,14 @@
 use std::{
     collections::{hash_map::Entry, HashMap},
     hash::Hash,
-    sync::{Arc, Weak},
+    sync::{Arc, OnceLock, Weak},
 };
-
-use once_cell::sync::OnceCell;
 
 use crate::lock::{rank, Mutex};
 use crate::FastHashMap;
 
 type SlotInner<V> = Weak<V>;
-type ResourcePoolSlot<V> = Arc<OnceCell<SlotInner<V>>>;
+type ResourcePoolSlot<V> = Arc<OnceLock<SlotInner<V>>>;
 
 pub struct ResourcePool<K, V> {
     inner: Mutex<FastHashMap<K, ResourcePoolSlot<V>>>,
@@ -52,7 +50,7 @@ impl<K: Clone + Eq + Hash, V> ResourcePool<K, V> {
                 // No entry exists for this resource.
                 //
                 // We know that the resource is not alive, so we can create a new entry.
-                Entry::Vacant(entry) => Arc::clone(entry.insert(Arc::new(OnceCell::new()))),
+                Entry::Vacant(entry) => Arc::clone(entry.insert(Arc::new(OnceLock::new()))),
             };
 
             drop(map_guard);
