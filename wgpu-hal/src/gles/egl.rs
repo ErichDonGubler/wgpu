@@ -1,9 +1,16 @@
 use glow::HasContext;
 use hashbrown::HashMap;
-use once_cell::sync::Lazy;
 use parking_lot::{MappedMutexGuard, Mutex, MutexGuard, RwLock};
 
-use std::{ffi, mem::ManuallyDrop, os::raw, ptr, rc::Rc, sync::Arc, time::Duration};
+use std::{
+    ffi,
+    mem::ManuallyDrop,
+    os::raw,
+    ptr,
+    rc::Rc,
+    sync::{Arc, LazyLock},
+    time::Duration,
+};
 
 /// The amount of time to wait while trying to obtain a lock to the adapter context
 const CONTEXT_LOCK_TIMEOUT_SECS: u64 = 1;
@@ -468,7 +475,8 @@ struct Inner {
 // Different calls to `eglGetPlatformDisplay` may return the same `Display`, making it a global
 // state of all our `EglContext`s. This forces us to track the number of such context to prevent
 // terminating the display if it's currently used by another `EglContext`.
-static DISPLAYS_REFERENCE_COUNT: Lazy<Mutex<HashMap<usize, usize>>> = Lazy::new(Default::default);
+static DISPLAYS_REFERENCE_COUNT: LazyLock<Mutex<HashMap<usize, usize>>> =
+    LazyLock::new(Default::default);
 
 fn initialize_display(
     egl: &EglInstance,
