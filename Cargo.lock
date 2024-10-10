@@ -4149,7 +4149,6 @@ dependencies = [
  "naga",
  "ndk-sys",
  "objc",
- "once_cell",
  "ordered-float",
  "parking_lot",
  "profiling",
