@@ -42,6 +42,7 @@ impl fmt::Display for ShaderError<crate::WithSpan<crate::valid::ValidationError>
         let mut writer = termcolor::NoColor::new(Vec::new());
         term::emit(&mut writer, &config, &files, &self.inner.diagnostic())
             .expect("cannot write error");
+        // TODO: remove this silly newline, make applications provide it
         write!(
             f,
             "\nShader validation {}",
