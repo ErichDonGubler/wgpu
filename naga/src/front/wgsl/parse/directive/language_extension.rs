@@ -17,6 +17,9 @@ pub enum LanguageExtension {
 }
 
 impl LanguageExtension {
+    #[cfg(test)]
+    const NAGA_REPLACE_ME_WITH_A_REAL_EXTENSION_PLZ: &'static str =
+        "naga_replace_me_with_a_real_extension_plz";
     const READONLY_AND_READWRITE_STORAGE_TEXTURES: &'static str =
         "readonly_and_readwrite_storage_textures";
     const PACKED4X8_INTEGER_DOT_PRODUCT: &'static str = "packed_4x8_integer_dot_product";
@@ -26,6 +29,10 @@ impl LanguageExtension {
     /// Convert from a sentinel word in WGSL into its associated [`LanguageExtension`], if possible.
     pub fn from_ident(s: &str) -> Option<Self> {
         Some(match s {
+            #[cfg(test)]
+            Self::NAGA_REPLACE_ME_WITH_A_REAL_EXTENSION_PLZ => {
+                Self::Implemented(ImplementedLanguageExtension::NagaReplaceMeWithARealExtensionPlz)
+            }
             Self::READONLY_AND_READWRITE_STORAGE_TEXTURES => Self::Unimplemented(
                 UnimplementedLanguageExtension::ReadOnlyAndReadWriteStorageTextures,
             ),
@@ -45,7 +52,12 @@ impl LanguageExtension {
     /// Maps this [`LanguageExtension`] into the sentinel word associated with it in WGSL.
     pub const fn to_ident(self) -> &'static str {
         match self {
-            Self::Implemented(kind) => kind.to_ident(),
+            Self::Implemented(kind) => match kind {
+                #[cfg(test)]
+                ImplementedLanguageExtension::NagaReplaceMeWithARealExtensionPlz => {
+                    Self::NAGA_REPLACE_ME_WITH_A_REAL_EXTENSION_PLZ
+                }
+            },
             Self::Unimplemented(kind) => match kind {
                 UnimplementedLanguageExtension::ReadOnlyAndReadWriteStorageTextures => {
                     Self::READONLY_AND_READWRITE_STORAGE_TEXTURES
@@ -74,7 +86,10 @@ impl LanguageExtension {
 /// A variant of [`LanguageExtension::Implemented`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, VariantArray)]
 #[cfg_attr(test, derive(strum::EnumIter))]
-pub enum ImplementedLanguageExtension {}
+pub enum ImplementedLanguageExtension {
+    #[cfg(test)]
+    NagaReplaceMeWithARealExtensionPlz,
+}
 
 impl ImplementedLanguageExtension {
     /// Returns slice of all variants of [`ImplementedLanguageExtension`].
