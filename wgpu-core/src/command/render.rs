@@ -689,6 +689,17 @@ pub enum RenderPassErrorInner {
         end_count_offset: u64,
         count_buffer_size: u64,
     },
+    #[error(
+        "Requested indirect index buffer bytes {}..{} which overruns indirect buffer of size {}",
+        begin_offset,
+        end_offset,
+        buffer_size
+    )]
+    IndirectIndexBufferOverrun {
+        begin_offset: u64,
+        end_offset: u64,
+        buffer_size: u64,
+    },
     #[error("Cannot pop debug group, because number of pushed debug groups is zero")]
     InvalidPopDebugGroup,
     #[error(transparent)]
@@ -2178,6 +2189,21 @@ fn set_index_buffer(
         Some(s) => offset + s.get(),
         None => buffer.size,
     };
+
+    let check_oob = |bound| {
+        if bound > buffer.size {
+            Err(RenderPassErrorInner::IndirectIndexBufferOverrun {
+                begin_offset: offset,
+                end_offset: end,
+                buffer_size: buffer.size,
+            })
+        } else {
+            Ok(())
+        }
+    };
+    check_oob(offset)?;
+    check_oob(end)?;
+
     state.index.update_buffer(offset..end, index_format);
 
     state
