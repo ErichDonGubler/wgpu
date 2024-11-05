@@ -272,7 +272,7 @@ pub fn op_webgpu_command_encoder_begin_compute_pass(
     };
 
     let (compute_pass, error) =
-        instance.command_encoder_create_compute_pass(*command_encoder, &descriptor);
+        instance.command_encoder_begin_compute_pass(*command_encoder, &descriptor);
     let rid = state
         .resource_table
         .add(super::compute_pass::WebGpuComputePass(RefCell::new(
