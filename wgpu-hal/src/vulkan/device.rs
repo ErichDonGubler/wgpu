@@ -188,7 +188,7 @@ impl super::DeviceShared {
 
                 let raw = unsafe {
                     self.raw
-                        .create_render_pass(&vk_info, None)
+                        .begin_render_pass(&vk_info, None)
                         .map_err(super::map_host_device_oom_err)?
                 };
 
