@@ -113,6 +113,7 @@ pub enum Action<'a> {
         id: id::QuerySetId,
         desc: crate::resource::QuerySetDescriptor<'a>,
     },
+    FreeQuerySet(id::QuerySetId),
     DestroyQuerySet(id::QuerySetId),
     WriteBuffer {
         id: id::BufferId,
