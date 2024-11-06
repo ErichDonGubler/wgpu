@@ -137,12 +137,12 @@ pub enum FunctionError {
     LastCaseFallTrough,
     #[error("The pointer {0:?} doesn't relate to a valid destination for a store")]
     InvalidStorePointer(Handle<crate::Expression>),
-    #[error("The value {0:?} can not be stored")]
-    InvalidStoreValue(Handle<crate::Expression>),
     #[error("The type of {value:?} doesn't match the type stored in {pointer:?}")]
     InvalidStoreTypes {
         pointer: Handle<crate::Expression>,
+        pointer_ty: crate::TypeInner,
         value: Handle<crate::Expression>,
+        value_ty: crate::TypeInner,
     },
     #[error("Image store parameters are invalid")]
     InvalidImageStore(#[source] ExpressionError),
@@ -1004,16 +1004,23 @@ impl super::Validator {
                         }
                     }
 
+                    let pointer_ty = context.resolve_pointer_type(pointer);
                     let value_ty = context.resolve_type(value, &self.valid_expression_set)?;
+
                     match *value_ty {
                         Ti::Image { .. } | Ti::Sampler { .. } => {
-                            return Err(FunctionError::InvalidStoreValue(value)
-                                .with_span_handle(value, context.expressions));
+                            return Err(FunctionError::InvalidStoreTypes {
+                                pointer,
+                                pointer_ty: pointer_ty.clone(),
+                                value,
+                                value_ty: value_ty.clone(),
+                            }
+                            .with_span()
+                            .with_handle(pointer, context.expressions)
+                            .with_handle(value, context.expressions));
                         }
                         _ => {}
                     }
-
-                    let pointer_ty = context.resolve_pointer_type(pointer);
 
                     let good = match *pointer_ty {
                         Ti::Pointer { base, space: _ } => match context.types[base].inner {
@@ -1033,10 +1040,15 @@ impl super::Validator {
                         _ => false,
                     };
                     if !good {
-                        return Err(FunctionError::InvalidStoreTypes { pointer, value }
-                            .with_span()
-                            .with_handle(pointer, context.expressions)
-                            .with_handle(value, context.expressions));
+                        return Err(FunctionError::InvalidStoreTypes {
+                            pointer,
+                            pointer_ty: pointer_ty.clone(),
+                            value,
+                            value_ty: value_ty.clone(),
+                        }
+                        .with_span()
+                        .with_handle(pointer, context.expressions)
+                        .with_handle(value, context.expressions));
                     }
 
                     if let Some(space) = pointer_ty.pointer_space() {
@@ -1165,9 +1177,17 @@ impl super::Validator {
 
                     // The value we're writing had better match the scalar type
                     // for `image`'s format.
-                    if *context.resolve_type(value, &self.valid_expression_set)? != value_ty {
-                        return Err(FunctionError::InvalidStoreValue(value)
-                            .with_span_handle(value, context.expressions));
+                    let pointer_ty = context.resolve_type(value, &self.valid_expression_set)?;
+                    if pointer_ty != &value_ty {
+                        return Err(FunctionError::InvalidStoreTypes {
+                            pointer: image,
+                            pointer_ty: pointer_ty.clone(),
+                            value,
+                            value_ty,
+                        }
+                        .with_span()
+                        .with_handle(image, context.expressions)
+                        .with_handle(value, context.expressions));
                     }
                 }
                 S::Call {
