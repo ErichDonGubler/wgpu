@@ -137,7 +137,7 @@ pub enum FunctionError {
     LastCaseFallTrough,
     #[error("The pointer {0:?} doesn't relate to a valid destination for a store")]
     InvalidStorePointer(Handle<crate::Expression>),
-    #[error("The type of {value:?} doesn't match the type stored in {pointer:?}")]
+    #[error("The type of {value:?} ({value_ty:?}) doesn't match the type stored in {pointer:?} ({pointer_ty:?})")]
     InvalidStoreTypes {
         pointer: Handle<crate::Expression>,
         pointer_ty: crate::TypeInner,
