@@ -905,4 +905,6 @@ error: found conflicting `diagnostic(…)` rule(s)
 ");
         }
     }
+
+    // TODO: operational tests for user and unknown rules
 }
