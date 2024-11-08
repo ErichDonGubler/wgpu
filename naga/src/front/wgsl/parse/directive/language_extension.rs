@@ -3,6 +3,8 @@
 //! The focal point of this module is the [`LanguageExtension`] API.
 
 use strum::VariantArray;
+#[cfg(test)]
+use strum::IntoEnumIterator;
 
 /// A language extension recognized by Naga, but not guaranteed to be present in all environments.
 ///
@@ -15,6 +17,9 @@ pub enum LanguageExtension {
 }
 
 impl LanguageExtension {
+    #[cfg(test)]
+    const NAGA_REPLACE_ME_WITH_A_REAL_EXTENSION_PLZ: &'static str =
+        "naga_replace_me_with_a_real_extension_plz";
     const READONLY_AND_READWRITE_STORAGE_TEXTURES: &'static str =
         "readonly_and_readwrite_storage_textures";
     const PACKED4X8_INTEGER_DOT_PRODUCT: &'static str = "packed_4x8_integer_dot_product";
@@ -24,6 +29,10 @@ impl LanguageExtension {
     /// Convert from a sentinel word in WGSL into its associated [`LanguageExtension`], if possible.
     pub fn from_ident(s: &str) -> Option<Self> {
         Some(match s {
+            #[cfg(test)]
+            Self::NAGA_REPLACE_ME_WITH_A_REAL_EXTENSION_PLZ => {
+                Self::Implemented(ImplementedLanguageExtension::NagaReplaceMeWithARealExtensionPlz)
+            }
             Self::READONLY_AND_READWRITE_STORAGE_TEXTURES => Self::Unimplemented(
                 UnimplementedLanguageExtension::ReadOnlyAndReadWriteStorageTextures,
             ),
@@ -43,7 +52,12 @@ impl LanguageExtension {
     /// Maps this [`LanguageExtension`] into the sentinel word associated with it in WGSL.
     pub const fn to_ident(self) -> &'static str {
         match self {
-            Self::Implemented(kind) => kind.to_ident(),
+            Self::Implemented(kind) => match kind {
+                #[cfg(test)]
+                ImplementedLanguageExtension::NagaReplaceMeWithARealExtensionPlz => {
+                    Self::NAGA_REPLACE_ME_WITH_A_REAL_EXTENSION_PLZ
+                }
+            },
             Self::Unimplemented(kind) => match kind {
                 UnimplementedLanguageExtension::ReadOnlyAndReadWriteStorageTextures => {
                     Self::READONLY_AND_READWRITE_STORAGE_TEXTURES
@@ -60,11 +74,22 @@ impl LanguageExtension {
             },
         }
     }
+
+    #[cfg(test)]
+    fn iter() -> impl Iterator<Item = Self> {
+        let implemented = ImplementedLanguageExtension::iter().map(Self::Implemented);
+        let unimplemented = UnimplementedLanguageExtension::iter().map(Self::Unimplemented);
+        implemented.chain(unimplemented)
+    }
 }
 
 /// A variant of [`LanguageExtension::Implemented`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, VariantArray)]
-pub enum ImplementedLanguageExtension {}
+#[cfg_attr(test, derive(strum::EnumIter))]
+pub enum ImplementedLanguageExtension {
+    #[cfg(test)]
+    NagaReplaceMeWithARealExtensionPlz,
+}
 
 impl ImplementedLanguageExtension {
     /// Returns slice of all variants of [`ImplementedLanguageExtension`].
@@ -80,6 +105,7 @@ impl ImplementedLanguageExtension {
 
 /// A variant of [`LanguageExtension::Unimplemented`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum UnimplementedLanguageExtension {
     ReadOnlyAndReadWriteStorageTextures,
     Packed4x8IntegerDotProduct,
@@ -96,4 +122,95 @@ impl UnimplementedLanguageExtension {
             Self::PointerCompositeAccess => 6192,
         }
     }
+}
+
+#[cfg(test)]
+mod test {
+    use itertools::Itertools;
+    use strum::IntoEnumIterator;
+
+    use crate::front::wgsl::assert_parse_err;
+
+    use super::{ImplementedLanguageExtension, LanguageExtension};
+
+    #[test]
+    fn implemented() {
+        #[derive(Clone, Debug, strum::EnumIter)]
+        enum Count {
+            ByItself,
+            WithOther,
+        }
+
+        #[derive(Clone, Debug, strum::EnumIter)]
+        enum Separation {
+            SameLineNoSpace,
+            SameLine,
+            MultiLine,
+        }
+
+        #[derive(Clone, Debug, strum::EnumIter)]
+        enum TrailingComma {
+            Yes,
+            No,
+        }
+
+        #[track_caller]
+        fn test_requires(before: &str, idents: &[&str], ident_sep: &str, after: &str) {
+            let ident_list = idents.join(ident_sep);
+            let shader = format!("requires{before}{ident_list}{after};");
+            let expected_msg = "".to_string();
+            assert_parse_err(&shader, &expected_msg);
+        }
+
+        let implemented_extensions =
+            ImplementedLanguageExtension::iter().map(LanguageExtension::Implemented);
+
+        let iter = implemented_extensions
+            .clone()
+            .cartesian_product(Count::iter())
+            .cartesian_product(Separation::iter())
+            .cartesian_product(TrailingComma::iter());
+        for (((extension, count), separation), trailing_comma) in iter {
+            let before;
+            let ident_sep;
+            match separation {
+                Separation::SameLine => {
+                    before = " ";
+                    ident_sep = ", ";
+                }
+                Separation::SameLineNoSpace => {
+                    before = " ";
+                    ident_sep = ",";
+                }
+                Separation::MultiLine => {
+                    before = "\n  ";
+                    ident_sep = ",\n  ";
+                }
+            }
+            let after = match trailing_comma {
+                TrailingComma::Yes => ident_sep,
+                TrailingComma::No => before,
+            };
+            match count {
+                Count::ByItself => test_requires(before, &[extension.to_ident()], ident_sep, after),
+                Count::WithOther => {
+                    for other_extension in implemented_extensions.clone() {
+                        for list in [[extension, other_extension], [other_extension, extension]] {
+                            let list = list.map(|e| e.to_ident());
+                            test_requires(before, &list, ident_sep, after);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn unimplemented() {}
+
+    #[test]
+    fn unknown() {}
+
+    #[test]
+    fn malformed() {}
 }
