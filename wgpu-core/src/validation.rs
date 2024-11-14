@@ -1,4 +1,9 @@
-use crate::{device::bgl, resource::InvalidResourceError, FastHashMap, FastHashSet};
+use crate::{
+    device::bgl,
+    error::{AsWebGpuErrorType, ErrorType},
+    resource::InvalidResourceError,
+    FastHashMap, FastHashSet,
+};
 use arrayvec::ArrayVec;
 use std::{collections::hash_map::Entry, fmt};
 use thiserror::Error;
@@ -209,6 +214,12 @@ pub enum BindingError {
     BadStorageFormat(wgt::TextureFormat),
 }
 
+impl AsWebGpuErrorType for BindingError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
 pub enum FilteringError {
@@ -216,6 +227,12 @@ pub enum FilteringError {
     Integer,
     #[error("Non-filterable float textures can't be sampled with a filtering sampler")]
     Float,
+}
+
+impl AsWebGpuErrorType for FilteringError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
 }
 
 #[derive(Clone, Debug, Error)]
@@ -229,6 +246,12 @@ pub enum InputError {
     InterpolationMismatch(Option<naga::Interpolation>),
     #[error("Input sampling doesn't match provided {0:?}")]
     SamplingMismatch(Option<naga::Sampling>),
+}
+
+impl AsWebGpuErrorType for InputError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
 }
 
 /// Errors produced when validating a programmable stage of a pipeline.
@@ -276,6 +299,31 @@ pub enum StageError {
     MultipleEntryPointsFound,
     #[error(transparent)]
     InvalidResource(#[from] InvalidResourceError),
+}
+
+impl AsWebGpuErrorType for StageError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Binding(_, e) => e,
+            Self::InvalidResource(e) => e,
+            Self::Filtering {
+                texture: _,
+                sampler: _,
+                error,
+            } => error,
+            Self::Input {
+                location: _,
+                var: _,
+                error,
+            } => error,
+            Self::InvalidWorkgroupSize { .. }
+            | Self::TooManyVaryings { .. }
+            | Self::MissingEntryPoint(_)
+            | Self::NoEntryPointFound
+            | Self::MultipleEntryPointsFound => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 fn map_storage_format_to_naga(format: wgt::TextureFormat) -> Option<naga::StorageFormat> {

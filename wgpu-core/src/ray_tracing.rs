@@ -10,6 +10,7 @@
 use crate::{
     command::CommandEncoderError,
     device::DeviceError,
+    error::AsWebGpuErrorType,
     id::{BlasId, BufferId, TlasId},
     resource::CreateBufferError,
 };
@@ -149,6 +150,12 @@ pub enum ValidateBlasActionsError {
     UsedUnbuilt(ResourceErrorIdent),
 }
 
+impl AsWebGpuErrorType for ValidateBlasActionsError {
+    fn as_webgpu_error_type(&self) -> crate::error::ErrorType {
+        crate::error::ErrorType::Validation
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 pub enum ValidateTlasActionsError {
     #[error("Tlas {0:?} is used before it is built")]
@@ -162,6 +169,12 @@ pub enum ValidateTlasActionsError {
 
     #[error("Blas {0:?} is newer than the containing Tlas {1:?}")]
     BlasNewerThenTlas(ResourceErrorIdent, ResourceErrorIdent),
+}
+
+impl AsWebGpuErrorType for ValidateTlasActionsError {
+    fn as_webgpu_error_type(&self) -> crate::error::ErrorType {
+        crate::error::ErrorType::Validation
+    }
 }
 
 #[derive(Debug)]
