@@ -1,5 +1,6 @@
 use crate::{
     binding_model,
+    error::{AsWebGpuErrorType, ErrorType},
     hub::Hub,
     id::{BindGroupLayoutId, PipelineLayoutId},
     resource::{
@@ -98,6 +99,12 @@ pub enum RenderPassCompatibilityError {
         actual: Option<NonZeroU32>,
         res: ResourceErrorIdent,
     },
+}
+
+impl AsWebGpuErrorType for RenderPassCompatibilityError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
 }
 
 impl RenderPassContext {
@@ -304,6 +311,12 @@ impl std::fmt::Display for DeviceMismatch {
 
 impl std::error::Error for DeviceMismatch {}
 
+impl AsWebGpuErrorType for DeviceMismatch {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
@@ -318,6 +331,17 @@ pub enum DeviceError {
     ResourceCreationFailed,
     #[error(transparent)]
     DeviceMismatch(#[from] Box<DeviceMismatch>),
+}
+
+impl AsWebGpuErrorType for DeviceError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            DeviceError::DeviceMismatch(e) => e.as_webgpu_error_type(),
+            Self::Invalid(_) => ErrorType::Validation,
+            Self::Lost | Self::ResourceCreationFailed => ErrorType::Internal,
+            Self::OutOfMemory => ErrorType::OutOfMemory,
+        }
+    }
 }
 
 impl DeviceError {
@@ -338,11 +362,15 @@ impl DeviceError {
 #[error("Features {0:?} are required but not enabled on the device")]
 pub struct MissingFeatures(pub wgt::Features);
 
+impl AsWebGpuErrorType for MissingFeatures {}
+
 #[derive(Clone, Debug, Error)]
 #[error(
     "Downlevel flags {0:?} are required but not supported on the device.\n{DOWNLEVEL_ERROR_MESSAGE}",
 )]
 pub struct MissingDownlevelFlags(pub wgt::DownlevelFlags);
+
+impl AsWebGpuErrorType for MissingDownlevelFlags {}
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use hashbrown::HashMap;
 
+use crate::error::{AsWebGpuErrorType, ErrorType};
 use crate::{
     api_log, api_log_debug,
     device::{queue::Queue, resource::Device, DeviceDescriptor, DeviceError},
@@ -28,6 +29,12 @@ pub struct FailedLimit {
     name: Cow<'static, str>,
     requested: u64,
     allowed: u64,
+}
+
+impl AsWebGpuErrorType for FailedLimit {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
 }
 
 fn check_limits(requested: &wgt::Limits, allowed: &wgt::Limits) -> Vec<FailedLimit> {
@@ -718,12 +725,31 @@ pub enum RequestDeviceError {
     UnsupportedFeature(wgt::Features),
 }
 
+impl AsWebGpuErrorType for RequestDeviceError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::LimitsExceeded(e) => e,
+            Self::UnsupportedFeature(_) => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum RequestAdapterError {
     #[error("No suitable adapter found")]
     NotFound,
+}
+
+impl AsWebGpuErrorType for RequestAdapterError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::NotFound => ErrorType::Internal,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Error)]

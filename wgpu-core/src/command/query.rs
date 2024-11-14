@@ -3,6 +3,7 @@ use crate::device::trace::Command as TraceCommand;
 use crate::{
     command::{CommandBuffer, CommandEncoderError},
     device::{DeviceError, MissingFeatures},
+    error::{AsWebGpuErrorType, ErrorType},
     global::Global,
     id,
     init_tracker::MemoryInitKind,
@@ -107,6 +108,21 @@ pub enum QueryError {
     InvalidResource(#[from] InvalidResourceError),
 }
 
+impl AsWebGpuErrorType for QueryError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Encoder(e) => e,
+            Self::Use(e) => e,
+            Self::Resolve(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::Device(e) => e,
+            Self::MissingFeature(e) => e,
+            Self::DestroyedResource(e) => e,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 /// Error encountered while trying to use queries
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
@@ -134,6 +150,19 @@ pub enum QueryUseError {
     },
 }
 
+impl AsWebGpuErrorType for QueryUseError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::Device(e) => e.as_webgpu_error_type(),
+            Self::OutOfBounds { .. }
+            | Self::UsedTwiceInsideRenderpass { .. }
+            | Self::AlreadyStarted { .. }
+            | Self::AlreadyStopped
+            | Self::IncompatibleType { .. } => ErrorType::Validation,
+        }
+    }
+}
+
 /// Error encountered while trying to resolve a query.
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
@@ -157,6 +186,17 @@ pub enum ResolveError {
         buffer_start_offset: BufferAddress,
         bytes_used: BufferAddress,
     },
+}
+
+impl AsWebGpuErrorType for ResolveError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::MissingBufferUsage(e) => e.as_webgpu_error_type(),
+            Self::BufferOffsetAlignment
+            | Self::QueryOverrun { .. }
+            | Self::BufferOverrun { .. } => ErrorType::Validation,
+        }
+    }
 }
 
 impl QuerySet {

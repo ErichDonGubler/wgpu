@@ -2,6 +2,7 @@ use crate::{
     device::{
         bgl, Device, DeviceError, MissingDownlevelFlags, MissingFeatures, SHADER_STAGE_COUNT,
     },
+    error::{AsWebGpuErrorType, ErrorType},
     id::{BindGroupLayoutId, BufferId, SamplerId, TextureViewId, TlasId},
     init_tracker::{BufferInitTrackerAction, TextureInitTrackerAction},
     pipeline::{ComputePipeline, RenderPipeline},
@@ -76,6 +77,22 @@ pub enum CreateBindGroupLayoutError {
     InvalidBindingIndex { binding: u32, maximum: u32 },
     #[error("Invalid visibility {0:?}")]
     InvalidVisibility(wgt::ShaderStages),
+}
+
+impl AsWebGpuErrorType for CreateBindGroupLayoutError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::Device(e) => e.as_webgpu_error_type(),
+
+            Self::ConflictBinding(_)
+            | Self::Entry { .. }
+            | Self::TooManyBindings(_)
+            | Self::InvalidBindingIndex { .. }
+            | Self::InvalidVisibility(_)
+            | Self::ContainsBothBindingArrayAndDynamicOffsetArray
+            | Self::ContainsBothBindingArrayAndUniformBuffer => ErrorType::Validation,
+        }
+    }
 }
 
 //TODO: refactor this to move out `enum BindingError`.
@@ -203,6 +220,45 @@ pub enum CreateBindGroupError {
     InvalidResource(#[from] InvalidResourceError),
 }
 
+impl AsWebGpuErrorType for CreateBindGroupError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::DestroyedResource(e) => e,
+            Self::MissingBufferUsage(e) => e,
+            Self::MissingTextureUsage(e) => e,
+            Self::ResourceUsageCompatibility(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::BindingArrayPartialLengthMismatch { .. }
+            | Self::BindingArrayLengthMismatch { .. }
+            | Self::BindingArrayZeroLength
+            | Self::BindingRangeTooLarge { .. }
+            | Self::BindingSizeTooSmall { .. }
+            | Self::BindingsNumMismatch { .. }
+            | Self::BindingZeroSize(_)
+            | Self::DuplicateBinding(_)
+            | Self::MissingBindingDeclaration(_)
+            | Self::SingleBindingExpected
+            | Self::UnalignedBufferOffset(_, _, _)
+            | Self::BufferRangeTooLarge { .. }
+            | Self::WrongBindingType { .. }
+            | Self::InvalidTextureMultisample { .. }
+            | Self::InvalidTextureSampleType { .. }
+            | Self::InvalidTextureDimension { .. }
+            | Self::InvalidStorageTextureFormat { .. }
+            | Self::InvalidStorageTextureMipLevelCount { .. }
+            | Self::WrongSamplerComparison { .. }
+            | Self::WrongSamplerFiltering { .. }
+            | Self::DepthStencilAspect
+            | Self::StorageReadNotSupported(_)
+            | Self::StorageWriteNotSupported(_)
+            | Self::StorageReadWriteNotSupported(_)
+            | Self::StorageAtomicNotSupported(_) => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 pub enum BindingZone {
     #[error("Stage {0:?}")]
@@ -218,6 +274,12 @@ pub struct BindingTypeMaxCountError {
     pub zone: BindingZone,
     pub limit: u32,
     pub count: u32,
+}
+
+impl AsWebGpuErrorType for BindingTypeMaxCountError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -605,6 +667,22 @@ pub enum CreatePipelineLayoutError {
     InvalidResource(#[from] InvalidResourceError),
 }
 
+impl AsWebGpuErrorType for CreatePipelineLayoutError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::MissingFeatures(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::TooManyBindings(e) => e,
+            Self::MisalignedPushConstantRange { .. }
+            | Self::MoreThanOnePushConstantRangePerStage { .. }
+            | Self::PushConstantRangeTooLarge { .. }
+            | Self::TooManyGroups { .. } => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
 pub enum PushConstantUploadError {
@@ -634,6 +712,12 @@ pub enum PushConstantUploadError {
     },
     #[error("Provided push constant offset {0} does not respect `PUSH_CONSTANT_ALIGNMENT`")]
     Unaligned(u32),
+}
+
+impl AsWebGpuErrorType for PushConstantUploadError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
 }
 
 /// Describes a pipeline layout.
@@ -883,6 +967,12 @@ pub enum BindError {
     },
 }
 
+impl AsWebGpuErrorType for BindError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
+
 #[derive(Debug)]
 pub struct BindGroupDynamicBindingData {
     /// The index of the binding.
@@ -1042,6 +1132,15 @@ pub enum GetBindGroupLayoutError {
     InvalidGroupIndex(u32),
     #[error(transparent)]
     InvalidResource(#[from] InvalidResourceError),
+}
+
+impl AsWebGpuErrorType for GetBindGroupLayoutError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::InvalidGroupIndex(_) => ErrorType::Validation,
+            Self::InvalidResource(e) => e.as_webgpu_error_type(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]

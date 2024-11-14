@@ -1,5 +1,6 @@
 use crate::{
     binding_model::{LateMinBufferBindingSizeMismatch, PushConstantUploadError},
+    error::{AsWebGpuErrorType, ErrorType},
     resource::{
         DestroyedResourceError, MissingBufferUsageError, MissingTextureUsageError,
         ResourceErrorIdent,
@@ -62,6 +63,12 @@ pub enum DrawError {
     BindingSizeTooSmall(#[from] LateMinBufferBindingSizeMismatch),
 }
 
+impl AsWebGpuErrorType for DrawError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
+
 /// Error encountered when encoding a render command.
 /// This is the shared error set between render bundles and passes.
 #[derive(Clone, Debug, Error)]
@@ -95,6 +102,29 @@ pub enum RenderCommandError {
     InvalidScissorRect(Rect<u32>, wgt::Extent3d),
     #[error("Support for {0} is not implemented yet")]
     Unimplemented(&'static str),
+}
+
+impl AsWebGpuErrorType for RenderCommandError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::IncompatiblePipelineTargets(e) => e,
+            Self::ResourceUsageCompatibility(e) => e,
+            Self::DestroyedResource(e) => e,
+            Self::MissingBufferUsage(e) => e,
+            Self::MissingTextureUsage(e) => e,
+            Self::PushConstants(e) => e,
+
+            Self::BindGroupIndexOutOfRange { .. }
+            | Self::VertexBufferIndexOutOfRange { .. }
+            | Self::IncompatibleDepthAccess(..)
+            | Self::IncompatibleStencilAccess(..)
+            | Self::InvalidViewportRect(..)
+            | Self::InvalidViewportDepth(..)
+            | Self::InvalidScissorRect(..)
+            | Self::Unimplemented(..) => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default)]

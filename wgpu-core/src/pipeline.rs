@@ -3,6 +3,7 @@ use crate::{
     binding_model::{CreateBindGroupLayoutError, CreatePipelineLayoutError, PipelineLayout},
     command::ColorAttachmentError,
     device::{Device, DeviceError, MissingDownlevelFlags, MissingFeatures, RenderPassContext},
+    error::{AsWebGpuErrorType, ErrorType},
     id::{PipelineCacheId, PipelineLayoutId, ShaderModuleId},
     resource::{InvalidResourceError, Labeled, TrackingData},
     resource_log, validation, Label,
@@ -119,6 +120,26 @@ pub enum CreateShaderModuleError {
     },
 }
 
+impl AsWebGpuErrorType for CreateShaderModuleError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::MissingFeatures(e) => e,
+
+            Self::Generation => return ErrorType::Internal,
+
+            Self::Validation(..) | Self::InvalidGroupIndex { .. } => return ErrorType::Validation,
+            #[cfg(any(feature = "wgsl", feature = "indirect-validation"))]
+            Self::Parsing(..) => return ErrorType::Validation,
+            #[cfg(feature = "glsl")]
+            Self::ParsingGlsl(..) => return ErrorType::Validation,
+            #[cfg(feature = "spirv")]
+            Self::ParsingSpirV(..) => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 /// Describes a programmable pipeline stage.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -192,6 +213,19 @@ pub enum ImplicitLayoutError {
     Pipeline(#[from] CreatePipelineLayoutError),
 }
 
+impl AsWebGpuErrorType for ImplicitLayoutError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::MissingImplicitPipelineIds | Self::MissingIds(_) | Self::ReflectionError(_) => {
+                return ErrorType::Validation
+            }
+            Self::BindGroup(e) => e,
+            Self::Pipeline(e) => e,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 /// Describes a compute pipeline.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -234,6 +268,21 @@ pub enum CreateComputePipelineError {
     MissingDownlevelFlags(#[from] MissingDownlevelFlags),
     #[error(transparent)]
     InvalidResource(#[from] InvalidResourceError),
+}
+
+impl AsWebGpuErrorType for CreateComputePipelineError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::MissingDownlevelFlags(e) => e,
+            Self::Implicit(e) => e,
+            Self::Stage(e) => e,
+            Self::Internal(_) => return ErrorType::Internal,
+            Self::PipelineConstants(_) => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 #[derive(Debug)]
@@ -538,6 +587,42 @@ pub enum CreateRenderPipelineError {
     NoTargetSpecified,
     #[error(transparent)]
     InvalidResource(#[from] InvalidResourceError),
+}
+
+impl AsWebGpuErrorType for CreateRenderPipelineError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::MissingFeatures(e) => e,
+            Self::MissingDownlevelFlags(e) => e,
+
+            Self::Internal { .. } => return ErrorType::Internal,
+
+            Self::ColorAttachment(_)
+            | Self::Implicit(_)
+            | Self::ColorState(_, _)
+            | Self::DepthStencilState(_)
+            | Self::InvalidSampleCount(_)
+            | Self::TooManyVertexBuffers { .. }
+            | Self::TooManyVertexAttributes { .. }
+            | Self::VertexStrideTooLarge { .. }
+            | Self::UnalignedVertexStride { .. }
+            | Self::InvalidVertexAttributeOffset { .. }
+            | Self::ShaderLocationClash(_)
+            | Self::StripIndexFormatForNonStripTopology { .. }
+            | Self::ConservativeRasterizationNonFillPolygonMode
+            | Self::Stage { .. }
+            | Self::UnalignedShader { .. }
+            | Self::BlendFactorOnUnsupportedTarget { .. }
+            | Self::PipelineExpectsShaderToUseDualSourceBlending
+            | Self::ShaderExpectsPipelineToUseDualSourceBlending
+            | Self::NoTargetSpecified
+            | Self::PipelineConstants { .. }
+            | Self::VertexAttributeStrideTooLarge { .. } => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 bitflags::bitflags! {
