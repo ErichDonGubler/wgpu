@@ -31,6 +31,7 @@ use self::memory_init::CommandBufferTextureMemoryActions;
 
 use crate::device::queue::TempResource;
 use crate::device::{Device, DeviceError, MissingFeatures};
+use crate::error::{AsWebGpuErrorType, ErrorType};
 use crate::lock::{rank, Mutex};
 use crate::snatch::SnatchGuard;
 
@@ -744,6 +745,26 @@ pub enum CommandEncoderError {
     TimestampWritesInvalid(#[from] QueryUseError),
     #[error("no begin or end indices were specified for pass timestamp writes, expected at least one to be set")]
     TimestampWriteIndicesMissing,
+}
+
+impl AsWebGpuErrorType for CommandEncoderError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::InvalidColorAttachment(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::MissingFeatures(e) => e,
+            Self::TimestampWritesInvalid(e) => e,
+            Self::InvalidAttachment(e) => e,
+
+            Self::Invalid
+            | Self::NotRecording
+            | Self::Locked
+            | Self::TimestampWriteIndicesEqual { .. }
+            | Self::TimestampWriteIndicesMissing => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 impl Global {

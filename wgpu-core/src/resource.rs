@@ -6,6 +6,7 @@ use crate::{
         queue, resource::DeferredDestroy, BufferMapPendingClosure, Device, DeviceError,
         DeviceMismatch, HostMap, MissingDownlevelFlags, MissingFeatures,
     },
+    error::{AsWebGpuErrorType, ErrorType},
     global::Global,
     hal_api::HalApi,
     id::{
@@ -282,6 +283,30 @@ pub enum BufferAccessError {
     InvalidResource(#[from] InvalidResourceError),
 }
 
+impl AsWebGpuErrorType for BufferAccessError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::DestroyedResource(e) => e,
+
+            Self::Failed
+            | Self::AlreadyMapped
+            | Self::MapAlreadyPending
+            | Self::MissingBufferUsage(_)
+            | Self::NotMapped
+            | Self::UnalignedRange
+            | Self::UnalignedOffset { .. }
+            | Self::UnalignedRangeSize { .. }
+            | Self::OutOfBoundsUnderrun { .. }
+            | Self::OutOfBoundsOverrun { .. }
+            | Self::NegativeRange { .. }
+            | Self::MapAborted => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error("Usage flags {actual:?} of {res} do not contain required usage flags {expected:?}")]
@@ -289,6 +314,12 @@ pub struct MissingBufferUsageError {
     pub(crate) res: ResourceErrorIdent,
     pub(crate) actual: wgt::BufferUsages,
     pub(crate) expected: wgt::BufferUsages,
+}
+
+impl AsWebGpuErrorType for MissingBufferUsageError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
 }
 
 #[derive(Clone, Debug, Error)]
@@ -299,15 +330,33 @@ pub struct MissingTextureUsageError {
     pub(crate) expected: wgt::TextureUsages,
 }
 
+impl AsWebGpuErrorType for MissingTextureUsageError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error("{0} has been destroyed")]
 pub struct DestroyedResourceError(pub ResourceErrorIdent);
 
+impl AsWebGpuErrorType for DestroyedResourceError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[error("{0} is invalid")]
 pub struct InvalidResourceError(pub ResourceErrorIdent);
+
+impl AsWebGpuErrorType for InvalidResourceError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
 
 pub enum Fallible<T: ParentDevice> {
     Valid(Arc<T>),
@@ -780,6 +829,23 @@ crate::impl_labeled!(Buffer);
 crate::impl_parent_device!(Buffer);
 crate::impl_storage_item!(Buffer);
 crate::impl_trackable!(Buffer);
+
+impl AsWebGpuErrorType for CreateBufferError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::AccessError(e) => e,
+            Self::IndirectValidationBindGroup(e) => e,
+            Self::MissingDownlevelFlags(e) => e,
+
+            Self::UnalignedSize
+            | Self::InvalidUsage(_)
+            | Self::UsageMismatch(_)
+            | Self::MaxBufferSize { .. } => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
 
 /// A buffer that has been marked as destroyed and is staged for actual deletion soon.
 #[derive(Debug)]
@@ -1496,6 +1562,12 @@ pub enum TextureDimensionError {
     MultisampledDepthOrArrayLayer(u32),
 }
 
+impl AsWebGpuErrorType for TextureDimensionError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
 pub enum CreateTextureError {
@@ -1547,6 +1619,31 @@ crate::impl_trackable!(Texture);
 impl Borrow<TextureSelector> for Texture {
     fn borrow(&self) -> &TextureSelector {
         &self.full_range
+    }
+}
+
+impl AsWebGpuErrorType for CreateTextureError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::CreateTextureView(e) => e,
+            Self::InvalidDimension(e) => e,
+            Self::MissingFeatures(_, e) => e,
+            Self::MissingDownlevelFlags(e) => e,
+
+            Self::InvalidUsage(_)
+            | Self::InvalidDepthDimension(_, _)
+            | Self::InvalidCompressedDimension(_, _)
+            | Self::InvalidMipLevelCount { .. }
+            | Self::InvalidFormatUsages(_, _, _)
+            | Self::InvalidViewFormat(_, _)
+            | Self::InvalidDimensionUsages(_, _)
+            | Self::InvalidMultisampledStorageBinding
+            | Self::InvalidMultisampledFormat(_)
+            | Self::InvalidSampleCount(..)
+            | Self::MultisampledNotRenderAttachment => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
     }
 }
 
@@ -1732,6 +1829,33 @@ pub enum CreateTextureViewError {
     MissingFeatures(#[from] MissingFeatures),
 }
 
+impl AsWebGpuErrorType for CreateTextureViewError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::Device(e) => e.as_webgpu_error_type(),
+
+            Self::InvalidTextureViewDimension { .. }
+            | Self::InvalidResource(_)
+            | Self::InvalidMultisampledTextureViewDimension(_)
+            | Self::InvalidCubemapTextureDepth { .. }
+            | Self::InvalidCubemapArrayTextureDepth { .. }
+            | Self::InvalidCubeTextureViewSize
+            | Self::ZeroMipLevelCount
+            | Self::ZeroArrayLayerCount
+            | Self::TooManyMipLevels { .. }
+            | Self::TooManyArrayLayers { .. }
+            | Self::InvalidArrayLayerCount { .. }
+            | Self::InvalidAspect { .. }
+            | Self::FormatReinterpretation { .. }
+            | Self::DestroyedResource(_)
+            | Self::TextureViewFormatNotRenderable(_)
+            | Self::TextureViewFormatNotStorage(_)
+            | Self::InvalidTextureViewUsage { .. }
+            | Self::MissingFeatures(_) => ErrorType::Validation,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
 pub enum TextureViewDestroyError {}
@@ -1848,6 +1972,21 @@ crate::impl_parent_device!(Sampler);
 crate::impl_storage_item!(Sampler);
 crate::impl_trackable!(Sampler);
 
+impl AsWebGpuErrorType for CreateSamplerError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::MissingFeatures(e) => e,
+
+            Self::InvalidLodMinClamp(_)
+            | Self::InvalidLodMaxClamp { .. }
+            | Self::InvalidAnisotropy(_)
+            | Self::InvalidFilterModeWithAnisotropy { .. } => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
 pub enum CreateQuerySetError {
@@ -1859,6 +1998,18 @@ pub enum CreateQuerySetError {
     TooManyQueries { count: u32, maximum: u32 },
     #[error(transparent)]
     MissingFeatures(#[from] MissingFeatures),
+}
+
+impl AsWebGpuErrorType for CreateQuerySetError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Device(e) => e,
+            Self::MissingFeatures(e) => e,
+
+            Self::TooManyQueries { .. } | Self::ZeroCount => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 pub type QuerySetDescriptor<'a> = wgt::QuerySetDescriptor<Label<'a>>;
@@ -1903,6 +2054,15 @@ pub enum DestroyError {
     AlreadyDestroyed,
     #[error(transparent)]
     InvalidResource(#[from] InvalidResourceError),
+}
+
+impl AsWebGpuErrorType for DestroyError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::AlreadyDestroyed => ErrorType::Validation,
+            Self::InvalidResource(e) => e.as_webgpu_error_type(),
+        }
+    }
 }
 
 pub type BlasDescriptor<'a> = wgt::CreateBlasDescriptor<Label<'a>>;

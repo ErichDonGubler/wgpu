@@ -103,6 +103,7 @@ mod texture;
 
 use crate::{
     binding_model, command,
+    error::AsWebGpuErrorType,
     lock::{rank, Mutex},
     pipeline,
     resource::{self, Labeled, ResourceErrorIdent},
@@ -353,6 +354,8 @@ pub enum ResourceUsageCompatibilityError {
         invalid_use: InvalidUse<wgt::TextureUses>,
     },
 }
+
+impl AsWebGpuErrorType for ResourceUsageCompatibilityError {}
 
 impl ResourceUsageCompatibilityError {
     fn from_buffer(

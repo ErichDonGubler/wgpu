@@ -88,6 +88,7 @@ use crate::{
         AttachmentData, Device, DeviceError, MissingDownlevelFlags, RenderPassContext,
         SHADER_STAGE_COUNT,
     },
+    error::{AsWebGpuErrorType, ErrorType},
     hub::Hub,
     id,
     init_tracker::{BufferInitTrackerAction, MemoryInitKind, TextureInitTrackerAction},
@@ -906,6 +907,15 @@ pub enum CreateRenderBundleError {
     InvalidSampleCount(u32),
 }
 
+impl AsWebGpuErrorType for CreateRenderBundleError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::ColorAttachment(e) => e.as_webgpu_error_type(),
+            Self::InvalidSampleCount(_) => ErrorType::Validation,
+        }
+    }
+}
+
 /// Error type returned from `RenderBundleEncoder::new` if the sample count is invalid.
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
@@ -1548,6 +1558,21 @@ pub struct RenderBundleError {
     pub scope: PassErrorScope,
     #[source]
     inner: RenderBundleErrorInner,
+}
+
+impl AsWebGpuErrorType for RenderBundleError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let Self { scope: _, inner } = self;
+        let e: &dyn AsWebGpuErrorType = match inner {
+            RenderBundleErrorInner::Device(e) => e,
+            RenderBundleErrorInner::RenderCommand(e) => e,
+            RenderBundleErrorInner::Draw(e) => e,
+            RenderBundleErrorInner::MissingDownlevelFlags(e) => e,
+            RenderBundleErrorInner::Bind(e) => e,
+            RenderBundleErrorInner::InvalidResource(e) => e,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 impl RenderBundleError {

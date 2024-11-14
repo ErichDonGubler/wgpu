@@ -62,3 +62,27 @@ impl Error for MultiError {
         self.inner[0].source()
     }
 }
+
+/// Corresponds to an optional discriminant of [`GPUError`] type in the WebGPU API. Strongly
+/// correlates to [`GPUErrorFilter`]s.
+///
+/// [`GPUError`]: https://gpuweb.github.io/gpuweb/#gpuerror
+/// [`GPUErrorFilter`]: https://gpuweb.github.io/gpuweb/#enumdef-gpuerrorfilter
+#[repr(u8)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub enum ErrorType {
+    Internal = 0,
+    OutOfMemory = 1,
+    Validation = 2,
+}
+
+/// A trait for querying the [`ErrorType`] classification of an error.
+///
+/// This is intended to be used as a convenience by implementations of WebGPU to classify errors
+/// returned by [`wgpu_core`](crate).
+pub trait AsWebGpuErrorType: Error {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        ErrorType::Validation
+    }
+}

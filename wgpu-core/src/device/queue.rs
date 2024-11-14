@@ -9,6 +9,7 @@ use crate::{
     },
     conv,
     device::{DeviceError, WaitIdleError},
+    error::{AsWebGpuErrorType, ErrorType},
     get_lowest_common_denom,
     global::Global,
     id::{self, QueueId},
@@ -426,6 +427,19 @@ pub enum QueueWriteError {
     InvalidResource(#[from] InvalidResourceError),
 }
 
+impl AsWebGpuErrorType for QueueWriteError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Queue(e) => e,
+            Self::Transfer(e) => e,
+            Self::MemoryInitFailure(e) => e,
+            Self::DestroyedResource(e) => e,
+            Self::InvalidResource(e) => e,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
 pub enum QueueSubmitError {
@@ -445,6 +459,23 @@ pub enum QueueSubmitError {
     ValidateBlasActionsError(#[from] crate::ray_tracing::ValidateBlasActionsError),
     #[error(transparent)]
     ValidateTlasActionsError(#[from] crate::ray_tracing::ValidateTlasActionsError),
+}
+
+impl AsWebGpuErrorType for QueueSubmitError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::Queue(e) => e,
+            Self::Unmap(e) => e,
+            Self::CommandEncoder(e) => e,
+            Self::ValidateBlasActionsError(e) => e,
+            Self::ValidateTlasActionsError(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::DestroyedResource(_) | Self::BufferStillMapped(_) => {
+                return ErrorType::Validation
+            }
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 //TODO: move out common parts of write_xxx.

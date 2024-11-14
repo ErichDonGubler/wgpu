@@ -6,6 +6,7 @@ use crate::{
     api_log,
     command::CommandEncoderError,
     device::DeviceError,
+    error::{AsWebGpuErrorType, ErrorType},
     get_lowest_common_denom,
     global::Global,
     id::{BufferId, CommandEncoderId, TextureId},
@@ -76,6 +77,28 @@ whereas subesource range specified start {subresource_base_array_layer} and coun
     CommandEncoderError(#[from] CommandEncoderError),
     #[error(transparent)]
     InvalidResource(#[from] InvalidResourceError),
+}
+
+impl AsWebGpuErrorType for ClearError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::DestroyedResource(e) => e,
+            Self::MissingBufferUsage(e) => e,
+            Self::Device(e) => e,
+            Self::CommandEncoderError(e) => e,
+            Self::InvalidResource(e) => e,
+            Self::NoValidTextureClearMode(..)
+            | Self::MissingClearTextureFeature
+            | Self::UnalignedFillSize(..)
+            | Self::UnalignedBufferOffset(..)
+            | Self::OffsetPlusSizeExceeds64BitBounds { .. }
+            | Self::BufferOverrun { .. }
+            | Self::MissingTextureAspect { .. }
+            | Self::InvalidTextureLevelRange { .. }
+            | Self::InvalidTextureLayerRange { .. } => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
 }
 
 impl Global {

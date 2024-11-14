@@ -5,6 +5,7 @@ use crate::{
     command::{clear_texture, CommandEncoderError},
     conv,
     device::{Device, DeviceError, MissingDownlevelFlags},
+    error::{AsWebGpuErrorType, ErrorType},
     global::Global,
     id::{BufferId, CommandEncoderId, TextureId},
     init_tracker::{
@@ -149,6 +150,45 @@ pub enum TransferError {
     InvalidMipLevel { requested: u32, count: u32 },
 }
 
+impl AsWebGpuErrorType for TransferError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        let e: &dyn AsWebGpuErrorType = match self {
+            Self::MemoryInitFailure(e) => e,
+            Self::MissingBufferUsage(e) => e,
+            Self::MissingTextureUsage(e) => e,
+            Self::MissingDownlevelFlags(e) => e,
+
+            Self::SameSourceDestinationBuffer
+            | Self::BufferOverrun { .. }
+            | Self::TextureOverrun { .. }
+            | Self::InvalidTextureAspect { .. }
+            | Self::InvalidTextureMipLevel { .. }
+            | Self::InvalidDimensionExternal
+            | Self::UnalignedBufferOffset(_)
+            | Self::UnalignedCopySize(_)
+            | Self::UnalignedCopyWidth
+            | Self::UnalignedCopyHeight
+            | Self::UnalignedCopyOriginX
+            | Self::UnalignedCopyOriginY
+            | Self::UnalignedBytesPerRow
+            | Self::UnspecifiedBytesPerRow
+            | Self::UnspecifiedRowsPerImage
+            | Self::InvalidBytesPerRow
+            | Self::InvalidRowsPerImage
+            | Self::CopySrcMissingAspects
+            | Self::CopyDstMissingAspects
+            | Self::CopyAspectNotOne
+            | Self::CopyFromForbiddenTextureFormat { .. }
+            | Self::CopyToForbiddenTextureFormat { .. }
+            | Self::ExternalCopyToForbiddenTextureFormat(_)
+            | Self::TextureFormatsNotCopyCompatible { .. }
+            | Self::InvalidSampleCount { .. }
+            | Self::InvalidMipLevel { .. } => return ErrorType::Validation,
+        };
+        e.as_webgpu_error_type()
+    }
+}
+
 /// Error encountered while attempting to do a copy on a command encoder.
 #[derive(Clone, Debug, Error)]
 #[non_exhaustive]
@@ -166,6 +206,17 @@ pub enum CopyError {
 impl From<DeviceError> for CopyError {
     fn from(err: DeviceError) -> Self {
         CopyError::Encoder(CommandEncoderError::Device(err))
+    }
+}
+
+impl AsWebGpuErrorType for CopyError {
+    fn as_webgpu_error_type(&self) -> ErrorType {
+        match self {
+            Self::Encoder(e) => e.as_webgpu_error_type(),
+            Self::Transfer(e) => e.as_webgpu_error_type(),
+
+            Self::InvalidResource(_) | Self::DestroyedResource(_) => ErrorType::Validation,
+        }
     }
 }
 
