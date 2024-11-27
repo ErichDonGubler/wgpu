@@ -2072,16 +2072,19 @@ pub enum BlendOperation {
 /// Corresponds to [WebGPU `GPUBlendComponent`](
 /// https://gpuweb.github.io/gpuweb/#dictdef-gpublendcomponent).
 #[repr(C)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(bon::Builder, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct BlendComponent {
     /// Multiplier for the source, which is produced by the fragment shader.
+    #[builder(default = BlendFactor::One)]
     pub src_factor: BlendFactor,
     /// Multiplier for the destination, which is stored in the target.
+    #[builder(default = BlendFactor::Zero)]
     pub dst_factor: BlendFactor,
     /// The binary operation applied to the source and destination,
     /// multiplied by their respective factors.
+    #[builder(default)]
     pub operation: BlendOperation,
 }
 
@@ -2165,7 +2168,7 @@ impl BlendState {
 /// Corresponds to [WebGPU `GPUColorTargetState`](
 /// https://gpuweb.github.io/gpuweb/#dictdef-gpucolortargetstate).
 #[repr(C)]
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(bon::Builder, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct ColorTargetState {
@@ -2179,6 +2182,7 @@ pub struct ColorTargetState {
     pub blend: Option<BlendState>,
     /// Mask which enables/disables writes to different color/alpha channel.
     #[cfg_attr(feature = "serde", serde(default))]
+    #[builder(default)]
     pub write_mask: ColorWrites,
 }
 
@@ -2289,11 +2293,12 @@ pub enum PolygonMode {
 /// Corresponds to [WebGPU `GPUPrimitiveState`](
 /// https://gpuweb.github.io/gpuweb/#dictdef-gpuprimitivestate).
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(bon::Builder, Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct PrimitiveState {
     /// The primitive topology used to interpret vertices.
+    #[builder(default)]
     pub topology: PrimitiveTopology,
     /// When drawing strip topologies with indices, this is the required format for the index buffer.
     /// This has no effect on non-indexed or non-strip draws.
@@ -2304,6 +2309,7 @@ pub struct PrimitiveState {
     pub strip_index_format: Option<IndexFormat>,
     /// The face to consider the front for the purpose of culling and stencil operations.
     #[cfg_attr(feature = "serde", serde(default))]
+    #[builder(default)]
     pub front_face: FrontFace,
     /// The face culling mode.
     #[cfg_attr(feature = "serde", serde(default))]
@@ -2312,6 +2318,7 @@ pub struct PrimitiveState {
     ///
     /// Enabling this requires `Features::DEPTH_CLIP_CONTROL` to be enabled.
     #[cfg_attr(feature = "serde", serde(default))]
+    #[builder(default)]
     pub unclipped_depth: bool,
     /// Controls the way each polygon is rasterized. Can be either `Fill` (default), `Line` or `Point`
     ///
@@ -2319,11 +2326,13 @@ pub struct PrimitiveState {
     ///
     /// Setting this to `Point` requires `Features::POLYGON_MODE_POINT` to be enabled.
     #[cfg_attr(feature = "serde", serde(default))]
+    #[builder(default)]
     pub polygon_mode: PolygonMode,
     /// If set to true, the primitives are rendered with conservative overestimation. I.e. any rastered pixel touched by it is filled.
     /// Only valid for PolygonMode::Fill!
     ///
     /// Enabling this requires `Features::CONSERVATIVE_RASTERIZATION` to be enabled.
+    #[builder(default)]
     pub conservative: bool,
 }
 
@@ -4876,7 +4885,7 @@ impl Eq for DepthBiasState {}
 /// Corresponds to [WebGPU `GPUDepthStencilState`](
 /// https://gpuweb.github.io/gpuweb/#dictdef-gpudepthstencilstate).
 #[repr(C)]
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(bon::Builder, Clone, Debug, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct DepthStencilState {
     /// Format of the depth/stencil buffer, must be special depth format. Must match the format
@@ -4885,14 +4894,17 @@ pub struct DepthStencilState {
     /// [CEbrp]: ../wgpu/struct.CommandEncoder.html#method.begin_render_pass
     pub format: TextureFormat,
     /// If disabled, depth will not be written to.
+    #[builder(default)]
     pub depth_write_enabled: bool,
     /// Comparison function used to compare depth values in the depth test.
     pub depth_compare: CompareFunction,
     /// Stencil state.
     #[cfg_attr(feature = "serde", serde(default))]
+    #[builder(default)]
     pub stencil: StencilState,
     /// Depth bias state.
     #[cfg_attr(feature = "serde", serde(default))]
+    #[builder(default)]
     pub bias: DepthBiasState,
 }
 
@@ -5329,10 +5341,11 @@ impl_bitflags!(BufferUsages);
 /// Corresponds to [WebGPU `GPUBufferDescriptor`](
 /// https://gpuweb.github.io/gpuweb/#dictdef-gpubufferdescriptor).
 #[repr(C)]
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(bon::Builder, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct BufferDescriptor<L> {
+pub struct BufferDescriptor<L: Default> {
     /// Debug label of a buffer. This will show up in graphics debuggers for easy identification.
+    #[builder(default)]
     pub label: L,
     /// Size of a buffer, in bytes.
     pub size: BufferAddress,
@@ -5344,13 +5357,14 @@ pub struct BufferDescriptor<L> {
     ///
     /// If this is `true`, [`size`](#structfield.size) must be a multiple of
     /// [`COPY_BUFFER_ALIGNMENT`].
+    #[builder(default)]
     pub mapped_at_creation: bool,
 }
 
-impl<L> BufferDescriptor<L> {
+impl<L: Default> BufferDescriptor<L> {
     /// Takes a closure and maps the label of the buffer descriptor into another.
     #[must_use]
-    pub fn map_label<K>(&self, fun: impl FnOnce(&L) -> K) -> BufferDescriptor<K> {
+    pub fn map_label<K: Default>(&self, fun: impl FnOnce(&L) -> K) -> BufferDescriptor<K> {
         BufferDescriptor {
             label: fun(&self.label),
             size: self.size,
@@ -6057,20 +6071,24 @@ fn test_max_mips() {
 /// Corresponds to [WebGPU `GPUTextureDescriptor`](
 /// https://gpuweb.github.io/gpuweb/#dictdef-gputexturedescriptor).
 #[repr(C)]
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(bon::Builder, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct TextureDescriptor<L, V> {
+pub struct TextureDescriptor<L: Default, V: Default> {
     /// Debug label of the texture. This will show up in graphics debuggers for easy identification.
+    #[builder(default, into)]
     pub label: L,
     /// Size of the texture. All components must be greater than zero. For a
     /// regular 1D/2D texture, the unused sizes will be 1. For 2DArray textures,
     /// Z is the number of 2D textures in that array.
     pub size: Extent3d,
     /// Mip count of texture. For a texture with no extra mips, this must be 1.
+    #[builder(default = 1)]
     pub mip_level_count: u32,
     /// Sample count of texture. If this is not 1, texture must have [`BindingType::Texture::multisampled`] set to true.
+    #[builder(default = 1)]
     pub sample_count: u32,
     /// Dimensions of the texture.
+    #[builder(default = TextureDimension::D2)]
     pub dimension: TextureDimension,
     /// Format of the texture.
     pub format: TextureFormat,
@@ -6081,13 +6099,14 @@ pub struct TextureDescriptor<L, V> {
     /// View formats of the same format as the texture are always allowed.
     ///
     /// Note: currently, only the srgb-ness is allowed to change. (ex: Rgba8Unorm texture + Rgba8UnormSrgb view)
+    #[builder(default)]
     pub view_formats: V,
 }
 
-impl<L, V> TextureDescriptor<L, V> {
+impl<L: Default, V: Default> TextureDescriptor<L, V> {
     /// Takes a closure and maps the label of the texture descriptor into another.
     #[must_use]
-    pub fn map_label<K>(&self, fun: impl FnOnce(&L) -> K) -> TextureDescriptor<K, V>
+    pub fn map_label<K: Default>(&self, fun: impl FnOnce(&L) -> K) -> TextureDescriptor<K, V>
     where
         V: Clone,
     {
@@ -6105,7 +6124,7 @@ impl<L, V> TextureDescriptor<L, V> {
 
     /// Maps the label and view_formats of the texture descriptor into another.
     #[must_use]
-    pub fn map_label_and_view_formats<K, M>(
+    pub fn map_label_and_view_formats<K: Default, M: Default>(
         &self,
         l_fun: impl FnOnce(&L) -> K,
         v_fun: impl FnOnce(V) -> M,
