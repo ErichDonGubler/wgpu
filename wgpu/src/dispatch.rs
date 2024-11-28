@@ -605,7 +605,7 @@ macro_rules! dispatch_types_inner {
 
             #[cfg(webgpu)]
             #[inline]
-            #[allow(clippy::allow_attributes, unused)]
+                #[expect(unused)]
             pub fn as_webgpu_opt(&self) -> Option<&<$webgpu_context as InterfaceTypes>::$subtype> {
                 match self {
                     Self::WebGPU(value) => Some(value),
@@ -660,7 +660,7 @@ macro_rules! dispatch_types_inner {
         impl $name {
             #[cfg(wgpu_core)]
             #[inline]
-            #[allow(clippy::allow_attributes, unused)]
+            #[expect(unused)]
             pub fn as_core(&self) -> &<$wgpu_core_context as InterfaceTypes>::$subtype {
                 match self {
                     Self::Core(value) => value,
@@ -670,7 +670,7 @@ macro_rules! dispatch_types_inner {
 
             #[cfg(wgpu_core)]
             #[inline]
-            #[allow(clippy::allow_attributes, unused)]
+            #[expect(unused)]
             pub fn as_core_mut(&mut self) -> &mut <$wgpu_core_context as InterfaceTypes>::$subtype {
                 match self {
                     Self::Core(value) => value,
@@ -680,7 +680,7 @@ macro_rules! dispatch_types_inner {
 
             #[cfg(wgpu_core)]
             #[inline]
-            #[allow(clippy::allow_attributes, unused)]
+            #[expect(unused)]
             pub fn as_core_opt(&self) -> Option<&<$wgpu_core_context as InterfaceTypes>::$subtype> {
                 match self {
                     Self::Core(value) => Some(value),
