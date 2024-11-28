@@ -473,13 +473,13 @@ pub enum ArcRenderCommand {
         indexed: bool,
     },
     PushDebugGroup {
-        #[cfg_attr(not(any(feature = "serde", feature = "replay")), allow(dead_code))]
+        #[cfg_attr(not(any(feature = "serde", feature = "replay")), expect(dead_code))]
         color: u32,
         len: usize,
     },
     PopDebugGroup,
     InsertDebugMarker {
-        #[cfg_attr(not(any(feature = "serde", feature = "replay")), allow(dead_code))]
+        #[cfg_attr(not(any(feature = "serde", feature = "replay")), expect(dead_code))]
         color: u32,
         len: usize,
     },
