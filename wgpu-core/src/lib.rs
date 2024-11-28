@@ -38,6 +38,7 @@
     rustdoc::private_intra_doc_links
 )]
 #![warn(
+    clippy::allow_attributes,
     clippy::ptr_as_ptr,
     trivial_casts,
     trivial_numeric_casts,
