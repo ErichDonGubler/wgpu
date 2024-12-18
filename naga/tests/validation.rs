@@ -644,13 +644,13 @@ fn main() {
 ",
             "\
 error: Entry point main at Compute is invalid
-  ┌─ wgsl:4:9
+  ┌─ wgsl:4:22
   │
 4 │     _ = select(1, 2, 9001);
-  │         ^^^^^^^^^^^^^^^^^^ naga::Expression [3]
+  │                      ^^^^ this is of type Scalar(Scalar { kind: Sint, width: 4 })
   │
   = Expression [3] is invalid
-  = Expected selection condition to be a boolean value, got Scalar(Scalar { kind: Sint, width: 4 })
+  = Expected selection condition [2] to be a boolean value
 
 ",
         ),
@@ -664,13 +664,15 @@ fn main() {
 ",
             "\
 error: Entry point main at Compute is invalid
-  ┌─ wgsl:4:9
+  ┌─ wgsl:4:16
   │
 4 │     _ = select(true, 1, false);
-  │         ^^^^^^^^^^^^^^^^^^^^^^ naga::Expression [3]
+  │                ^^^^  ^ accept value of type Scalar(Scalar { kind: Sint, width: 4 })
+  │                │      
+  │                reject value of type Scalar(Scalar { kind: Bool, width: 1 })
   │
   = Expression [3] is invalid
-  = Expected selection argument types to match, but reject value of type Scalar(Scalar { kind: Bool, width: 1 }) does not match accept value of value Scalar(Scalar { kind: Sint, width: 4 })
+  = Expected selection reject and accept values ([1] and [0], respectively) to match, but they have different types
 
 ",
         ),
