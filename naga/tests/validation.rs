@@ -273,7 +273,7 @@ error: Entry point main at Compute is invalid
   ┌─ wgsl:3:13
   │
 3 │     let a = cross(vec2(0., 1.), vec2(0., 1.));
-  │             ^^^^^ naga::Expression [6]
+  │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ naga::Expression [6]
   │
   = Expression [6] is invalid
   = Argument [0] to Cross as expression [2] has an invalid type.
@@ -287,7 +287,7 @@ error: Entry point main at Compute is invalid
   ┌─ wgsl:3:13
   │
 3 │     let a = cross(vec4(0., 1., 2., 3.), vec4(0., 1., 2., 3.));
-  │             ^^^^^ naga::Expression [10]
+  │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ naga::Expression [10]
   │
   = Expression [10] is invalid
   = Argument [0] to Cross as expression [4] has an invalid type.
@@ -647,7 +647,7 @@ error: Entry point main at Compute is invalid
   ┌─ wgsl:4:9
   │
 4 │     _ = select(1, 2, 9001);
-  │         ^^^^^^ naga::Expression [3]
+  │         ^^^^^^^^^^^^^^^^^^ naga::Expression [3]
   │
   = Expression [3] is invalid
   = Expected selection condition to be a boolean value, got Scalar(Scalar { kind: Sint, width: 4 })
@@ -667,7 +667,7 @@ error: Entry point main at Compute is invalid
   ┌─ wgsl:4:9
   │
 4 │     _ = select(true, 1, false);
-  │         ^^^^^^ naga::Expression [3]
+  │         ^^^^^^^^^^^^^^^^^^^^^^ naga::Expression [3]
   │
   = Expression [3] is invalid
   = Expected selection argument types to match, but reject value of type Scalar(Scalar { kind: Bool, width: 1 }) does not match accept value of value Scalar(Scalar { kind: Sint, width: 4 })
