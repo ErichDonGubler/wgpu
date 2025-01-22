@@ -99,8 +99,12 @@ petgraph = { version = "0.7", optional = true }
 pp-rs = { version = "0.2.1", optional = true }
 hexf-parse = { version = "0.2.1", optional = true }
 unicode-xid = { version = "0.2.6", optional = true }
-# TODO: remove `[patch]` entry in workspace `Cargo.toml` for `half` after we upstream `arbitrary` support
-half = { version = "2.4.1", features = ["arbitrary", "num-traits"] }
+# TODO: Use `half` directly again after <https://github.com/starkat99/half-rs/pull/111> is released
+# upstream.
+half = { package = "half-2", version = "2.4.1", features = [
+    "arbitrary",
+    "num-traits",
+] }
 num-traits = "0.2"
 
 [build-dependencies]

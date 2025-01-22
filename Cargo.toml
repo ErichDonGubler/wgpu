@@ -195,7 +195,6 @@ ndk-sys = "0.5.0"
 
 # These overrides allow our examples to explicitly depend on release crates 
 [patch.crates-io]
-half = { git = "https://github.com/FL33TW00D/half-rs.git", branch = "feature/arbitrary" }
 wgpu = { path = "./wgpu" }
 
 [profile.release]
