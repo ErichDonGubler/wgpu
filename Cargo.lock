@@ -1600,7 +1600,18 @@ dependencies = [
 [[package]]
 name = "half"
 version = "2.4.1"
-source = "git+https://github.com/FL33TW00D/half-rs.git?branch=feature/arbitrary#6bc4bea632269b53ccb6666a8508edc25fba9f3e"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6dd08c532ae367adf81c312a4580bc67f1d0fe8bc9c460520283f4c0ff277888"
+dependencies = [
+ "cfg-if",
+ "crunchy",
+]
+
+[[package]]
+name = "half-2"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c36518ae13d88b7cbdc61401256df5d9fc27921ea66353a16660869b47af8864"
 dependencies = [
  "arbitrary",
  "bytemuck",
@@ -2195,7 +2206,7 @@ dependencies = [
  "codespan-reporting",
  "diff",
  "env_logger",
- "half",
+ "half-2",
  "hexf-parse",
  "hlsl-snapshots",
  "indexmap",
@@ -4110,7 +4121,7 @@ dependencies = [
  "flume",
  "getrandom",
  "glam",
- "half",
+ "half-2",
  "ktx2",
  "log",
  "nanorand",
