@@ -200,7 +200,7 @@ impl Frontend {
         })
     }
 
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     fn matrix_one_arg(
         &mut self,
         ctx: &mut Context,
@@ -348,7 +348,6 @@ impl Frontend {
         ctx.add_expression(Expression::Compose { ty, components }, meta)
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn vector_constructor(
         &mut self,
         ctx: &mut Context,
@@ -506,7 +505,6 @@ impl Frontend {
         ctx.add_expression(Expression::Compose { ty, components }, meta)
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn function_call(
         &mut self,
         ctx: &mut Context,
@@ -868,7 +866,7 @@ impl Frontend {
 
     /// Processes a function call argument that appears in place of an output
     /// parameter.
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     fn process_lhs_argument(
         &mut self,
         ctx: &mut Context,

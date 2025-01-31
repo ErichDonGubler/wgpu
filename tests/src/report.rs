@@ -10,12 +10,12 @@ use wgpu::{
 /// Must be synchronized with the definition on wgpu-info/src/report.rs.
 #[derive(Deserialize)]
 pub(crate) struct GpuReport {
-    #[cfg_attr(target_arch = "wasm32", allow(unused))]
+    #[cfg_attr(target_arch = "wasm32", expect(unused))]
     pub devices: Vec<AdapterReport>,
 }
 
 impl GpuReport {
-    #[cfg_attr(target_arch = "wasm32", allow(unused))]
+    #[cfg_attr(target_arch = "wasm32", expect(unused))]
     pub(crate) fn from_json(file: &str) -> serde_json::Result<Self> {
         profiling::scope!("Parsing .gpuconfig");
         serde_json::from_str(file)
@@ -31,7 +31,6 @@ pub struct AdapterReport {
     pub features: Features,
     pub limits: Limits,
     pub downlevel_caps: DownlevelCapabilities,
-    #[allow(unused)]
     pub texture_format_features: HashMap<TextureFormat, TextureFormatFeatures>,
 }
 

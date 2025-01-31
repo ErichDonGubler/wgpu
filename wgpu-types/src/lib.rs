@@ -1537,7 +1537,7 @@ impl Limits {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DownlevelLimits {}
 
-#[allow(clippy::derivable_impls)]
+#[expect(clippy::derivable_impls)]
 impl Default for DownlevelLimits {
     fn default() -> Self {
         DownlevelLimits {}
@@ -6050,7 +6050,7 @@ pub struct Color {
     pub a: f64,
 }
 
-#[allow(missing_docs)]
+#[expect(missing_docs)]
 impl Color {
     pub const TRANSPARENT: Self = Self {
         r: 0.0,
@@ -6118,9 +6118,9 @@ pub enum TextureDimension {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Origin2d {
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     pub x: u32,
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     pub y: u32,
 }
 

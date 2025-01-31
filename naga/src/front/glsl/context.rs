@@ -489,7 +489,7 @@ impl<'a> Context<'a> {
                 vector = pointer;
             }
 
-            #[allow(clippy::needless_range_loop)]
+            #[expect(clippy::needless_range_loop)]
             for index in 0..size {
                 let dst = self.add_expression(
                     Expression::AccessIndex {

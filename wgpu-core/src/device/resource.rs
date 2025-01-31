@@ -1593,7 +1593,6 @@ impl Device {
         Ok(module)
     }
 
-    #[allow(unused_unsafe)]
     pub(crate) unsafe fn create_shader_module_spirv<'a>(
         self: &Arc<Self>,
         desc: &pipeline::ShaderModuleDescriptor<'a>,

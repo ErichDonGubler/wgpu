@@ -269,7 +269,6 @@ pub struct Validator {
     layouter: Layouter,
     location_mask: BitSet,
     ep_resource_bindings: FastHashSet<crate::ResourceBinding>,
-    #[allow(dead_code)]
     switch_values: FastHashSet<crate::SwitchValue>,
     valid_expression_list: Vec<Handle<crate::Expression>>,
     valid_expression_set: HandleSet<crate::Expression>,

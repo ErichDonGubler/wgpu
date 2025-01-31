@@ -22,7 +22,6 @@ use parking_lot::{Mutex, RwLock};
 
 #[link(name = "QuartzCore", kind = "framework")]
 extern "C" {
-    #[allow(non_upper_case_globals)]
     static kCAGravityResize: *mut Object;
 }
 
@@ -73,7 +72,6 @@ impl super::Surface {
     }
 
     /// If not called on the main thread, this will panic.
-    #[allow(clippy::transmute_ptr_to_ref)]
     pub unsafe fn from_view(view: NonNull<Object>) -> Self {
         let layer = unsafe { Self::get_metal_layer(view) };
         let layer = ManuallyDrop::new(layer);

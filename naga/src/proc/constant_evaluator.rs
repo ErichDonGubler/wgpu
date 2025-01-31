@@ -164,7 +164,7 @@ macro_rules! gen_component_wise_extractor {
 
         with_dollar_sign! {
             ($d:tt) => {
-                #[allow(unused)]
+                #[allow(clippy::allow_attributes, unused)]
                 #[doc = concat!(
                     "A convenience macro for using the same RHS for each [`",
                     stringify!($target),
@@ -1259,7 +1259,7 @@ impl<'a> ConstantEvaluator<'a> {
             // bits
             crate::MathFunction::CountTrailingZeros => {
                 component_wise_concrete_int!(self, span, [arg], |e| {
-                    #[allow(clippy::useless_conversion)]
+                    #[allow(clippy::allow_attributes, clippy::useless_conversion)]
                     Ok([e
                         .trailing_zeros()
                         .try_into()
@@ -1268,7 +1268,7 @@ impl<'a> ConstantEvaluator<'a> {
             }
             crate::MathFunction::CountLeadingZeros => {
                 component_wise_concrete_int!(self, span, [arg], |e| {
-                    #[allow(clippy::useless_conversion)]
+                    #[allow(clippy::allow_attributes, clippy::useless_conversion)]
                     Ok([e
                         .leading_zeros()
                         .try_into()
@@ -1277,7 +1277,7 @@ impl<'a> ConstantEvaluator<'a> {
             }
             crate::MathFunction::CountOneBits => {
                 component_wise_concrete_int!(self, span, [arg], |e| {
-                    #[allow(clippy::useless_conversion)]
+                    #[allow(clippy::allow_attributes, clippy::useless_conversion)]
                     Ok([e
                         .count_ones()
                         .try_into()

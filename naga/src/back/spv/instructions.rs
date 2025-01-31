@@ -282,7 +282,6 @@ impl super::Instruction {
         instruction
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub(super) fn type_image(
         id: Word,
         sampled_type_id: Word,
@@ -748,7 +747,7 @@ impl super::Instruction {
     //
     //  Ray Query Instructions
     //
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     pub(super) fn ray_query_initialize(
         query: Word,
         acceleration_structure: Word,

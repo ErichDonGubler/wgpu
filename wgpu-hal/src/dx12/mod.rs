@@ -547,7 +547,7 @@ unsafe impl Sync for Surface {}
 #[derive(Debug, Clone, Copy)]
 enum MemoryArchitecture {
     Unified {
-        #[allow(unused)]
+        #[expect(unused)]
         cache_coherent: bool,
     },
     NonUnified,
@@ -556,7 +556,7 @@ enum MemoryArchitecture {
 #[derive(Debug, Clone, Copy)]
 struct PrivateCapabilities {
     instance_flags: wgt::InstanceFlags,
-    #[allow(unused)]
+    #[expect(unused)]
     heterogeneous_resource_heaps: bool,
     memory_architecture: MemoryArchitecture,
     heap_create_not_zeroed: bool,
@@ -579,8 +579,7 @@ pub struct Adapter {
     library: Arc<D3D12Lib>,
     private_caps: PrivateCapabilities,
     presentation_timer: auxil::dxgi::time::PresentationTimer,
-    // Note: this isn't used right now, but we'll need it later.
-    #[allow(unused)]
+    #[expect(unused, reason = "This isn't used right now, but we'll need it later.")]
     workarounds: Workarounds,
     dxc_container: Option<Arc<shader_compilation::DxcContainer>>,
 }

@@ -366,7 +366,7 @@ pub enum ConservativeDepth {
 #[cfg_attr(feature = "serialize", derive(Serialize))]
 #[cfg_attr(feature = "deserialize", derive(Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(Arbitrary))]
-#[allow(missing_docs)] // The names are self evident
+#[expect(missing_docs)] // The names are self evident
 pub enum ShaderStage {
     Vertex,
     Fragment,
@@ -1759,7 +1759,7 @@ pub enum RayQueryFunction {
         /// [`AccelerationStructure`]: TypeInner::AccelerationStructure
         acceleration_structure: Handle<Expression>,
 
-        #[allow(rustdoc::private_intra_doc_links)]
+        #[expect(rustdoc::private_intra_doc_links)]
         /// A struct of detailed parameters for the ray query.
         ///
         /// This expression should have the struct type given in

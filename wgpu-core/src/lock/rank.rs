@@ -49,7 +49,7 @@ macro_rules! define_lock_ranks {
         )*
     } => {
         // An enum that assigns a unique number to each rank.
-        #[allow(non_camel_case_types, clippy::upper_case_acronyms)]
+        #[expect(non_camel_case_types, clippy::upper_case_acronyms)]
         enum LockRankNumber { $( $name, )* }
 
         bitflags::bitflags! {
@@ -72,7 +72,7 @@ macro_rules! define_lock_ranks {
                 }
             }
 
-            #[cfg_attr(not(feature = "observe_locks"), allow(dead_code))]
+            #[cfg_attr(not(feature = "observe_locks"), expect(dead_code))]
             pub fn const_name(self) -> &'static str {
                 match self {
                     $(
@@ -132,7 +132,6 @@ define_lock_ranks! {
     rank BUFFER_INITIALIZATION_STATUS "Buffer::initialization_status" followed by { }
     rank DEVICE_DEFERRED_DESTROY "Device::deferred_destroy" followed by { }
     rank DEVICE_FENCE "Device::fence" followed by { }
-    #[allow(dead_code)]
     rank DEVICE_TRACE "Device::trace" followed by { }
     rank DEVICE_TRACKERS "Device::trackers" followed by { }
     rank DEVICE_LOST_CLOSURE "Device::device_lost_closure" followed by { }

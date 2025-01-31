@@ -265,7 +265,7 @@ type FragmentEntryPoint<'a> = naga::back::hlsl::FragmentEntryPoint<'a>;
 #[cfg(not(hlsl_out))]
 type FragmentEntryPoint<'a> = ();
 
-#[allow(unused_variables)]
+#[expect(unused_variables)]
 fn check_targets(
     input: &Input,
     module: &mut naga::Module,
@@ -562,7 +562,7 @@ fn write_output_msl(
 }
 
 #[cfg(glsl_out)]
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 fn write_output_glsl(
     input: &Input,
     module: &naga::Module,
@@ -1126,7 +1126,6 @@ fn convert_glsl_variations_check() {
 }
 
 #[cfg(feature = "glsl-in")]
-#[allow(unused_variables)]
 #[test]
 fn convert_glsl_folder() {
     let _ = env_logger::try_init();

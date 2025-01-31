@@ -1017,7 +1017,7 @@ impl<'a> Error<'a> {
                     )
                     .into(),
                 )],
-                #[allow(irrefutable_let_patterns)]
+                #[expect(irrefutable_let_patterns)]
                 notes: if let EnableExtension::Unimplemented(kind) = kind {
                     vec![format!(
                         concat!(

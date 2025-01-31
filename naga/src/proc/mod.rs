@@ -411,7 +411,10 @@ pub struct GlobalCtx<'a> {
 
 impl GlobalCtx<'_> {
     /// Try to evaluate the expression in `self.global_expressions` using its `handle` and return it as a `u32`.
-    #[allow(dead_code)]
+    #[cfg_attr(
+        not(any(feature = "spv-in", feature = "glsl-in", feature = "wgsl-in")),
+        expect(dead_code)
+    )]
     pub(super) fn eval_expr_to_u32(
         &self,
         handle: crate::Handle<crate::Expression>,
@@ -435,7 +438,10 @@ impl GlobalCtx<'_> {
     }
 
     /// Try to evaluate the expression in the `arena` using its `handle` and return it as a `bool`.
-    #[allow(dead_code)]
+    #[cfg_attr(
+        not(any(feature = "spv-in", feature = "glsl-in", feature = "wgsl-in")),
+        expect(dead_code)
+    )]
     pub(super) fn eval_expr_to_bool_from(
         &self,
         handle: crate::Handle<crate::Expression>,
@@ -447,7 +453,10 @@ impl GlobalCtx<'_> {
         }
     }
 
-    #[allow(dead_code)]
+    #[cfg_attr(
+        not(any(feature = "spv-in", feature = "glsl-in", feature = "wgsl-in")),
+        expect(dead_code)
+    )]
     pub(crate) fn eval_expr_to_literal(
         &self,
         handle: crate::Handle<crate::Expression>,

@@ -677,7 +677,7 @@ impl Buffer {
                 range,
                 host,
             } => {
-                #[allow(clippy::collapsible_if)]
+                #[cfg_attr(not(feature = "trace"), expect(clippy::collapsible_if))]
                 if host == HostMap::Write {
                     #[cfg(feature = "trace")]
                     if let Some(ref mut trace) = *device.trace.lock() {
@@ -929,7 +929,7 @@ impl StagingBuffer {
     pub(crate) fn flush(self) -> FlushedStagingBuffer {
         let device = self.device.raw();
         if !self.is_coherent {
-            #[allow(clippy::single_range_in_vec_init)]
+            #[expect(clippy::single_range_in_vec_init)]
             unsafe {
                 device.flush_mapped_ranges(self.raw.as_ref(), &[0..self.size.get()])
             };

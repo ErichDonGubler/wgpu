@@ -55,7 +55,6 @@ fn downlevel_default_limits_less_than_default_limits() {
 
 #[derive(Default)]
 pub struct Instance {
-    #[allow(dead_code)]
     pub name: String,
     /// List of instances per backend.
     ///
@@ -611,7 +610,6 @@ impl Adapter {
         }
     }
 
-    #[allow(clippy::type_complexity)]
     fn create_device_and_queue_from_hal(
         self: &Arc<Self>,
         hal_device: hal::DynOpenDevice,

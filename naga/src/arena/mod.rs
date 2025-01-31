@@ -77,7 +77,6 @@ impl<T> Arena<T> {
     }
 
     /// Extracts the inner vector.
-    #[allow(clippy::missing_const_for_fn)] // ignore due to requirement of #![feature(const_precise_live_drops)]
     pub fn into_inner(self) -> Vec<T> {
         self.data
     }

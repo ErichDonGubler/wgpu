@@ -542,7 +542,6 @@ pub struct BindGroupLayout {
     /// (derived BGLs) must not be removed.
     pub(crate) origin: bgl::Origin,
     pub(crate) exclusive_pipeline: OnceLock<ExclusivePipeline>,
-    #[allow(unused)]
     pub(crate) binding_count_validator: BindingTypeMaxCountValidator,
     /// The `label` from the descriptor used to create the resource.
     pub(crate) label: String,

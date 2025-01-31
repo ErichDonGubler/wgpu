@@ -31,7 +31,7 @@ pub(crate) fn new_render_bundle_encoder_descriptor<'a>(
     }
 }
 
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Action<'a> {

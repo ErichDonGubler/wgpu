@@ -352,13 +352,13 @@ pub enum DeviceError {
     Unexpected,
 }
 
-#[allow(dead_code)] // may be unused on some platforms
+#[cfg_attr(not(any(vulkan, dx12)), expect(dead_code))]
 #[cold]
 fn hal_usage_error<T: fmt::Display>(txt: T) -> ! {
     panic!("wgpu-hal invariant was violated (usage error): {txt}")
 }
 
-#[allow(dead_code)] // may be unused on some platforms
+#[cfg_attr(not(dx12), expect(dead_code))]
 #[cold]
 fn hal_internal_error<T: fmt::Display>(txt: T) -> ! {
     panic!("wgpu-hal ran into a preventable internal error: {txt}")
@@ -420,14 +420,14 @@ pub struct InstanceError {
 }
 
 impl InstanceError {
-    #[allow(dead_code)] // may be unused on some platforms
+    #[cfg_attr(not(any(gles, vulkan, metal)), expect(dead_code))]
     pub(crate) fn new(message: String) -> Self {
         Self {
             message,
             source: None,
         }
     }
-    #[allow(dead_code)] // may be unused on some platforms
+    #[cfg_attr(not(any(gles, vulkan, metal)), expect(dead_code))]
     pub(crate) fn with_source(
         message: String,
         source: impl std::error::Error + Send + Sync + 'static,
@@ -858,7 +858,7 @@ pub trait Device: WasmNotSendSync {
     ) -> Result<<Self::A as Api>::PipelineLayout, DeviceError>;
     unsafe fn destroy_pipeline_layout(&self, pipeline_layout: <Self::A as Api>::PipelineLayout);
 
-    #[allow(clippy::type_complexity)]
+    #[expect(clippy::type_complexity)]
     unsafe fn create_bind_group(
         &self,
         desc: &BindGroupDescriptor<
@@ -878,7 +878,7 @@ pub trait Device: WasmNotSendSync {
     ) -> Result<<Self::A as Api>::ShaderModule, ShaderError>;
     unsafe fn destroy_shader_module(&self, module: <Self::A as Api>::ShaderModule);
 
-    #[allow(clippy::type_complexity)]
+    #[expect(clippy::type_complexity)]
     unsafe fn create_render_pipeline(
         &self,
         desc: &RenderPipelineDescriptor<
@@ -889,7 +889,7 @@ pub trait Device: WasmNotSendSync {
     ) -> Result<<Self::A as Api>::RenderPipeline, PipelineError>;
     unsafe fn destroy_render_pipeline(&self, pipeline: <Self::A as Api>::RenderPipeline);
 
-    #[allow(clippy::type_complexity)]
+    #[expect(clippy::type_complexity)]
     unsafe fn create_compute_pipeline(
         &self,
         desc: &ComputePipelineDescriptor<
@@ -949,7 +949,7 @@ pub trait Device: WasmNotSendSync {
     unsafe fn start_capture(&self) -> bool;
     unsafe fn stop_capture(&self);
 
-    #[allow(unused_variables)]
+    #[expect(unused_variables)]
     unsafe fn pipeline_cache_get_data(
         &self,
         cache: &<Self::A as Api>::PipelineCache,
@@ -2014,7 +2014,6 @@ impl fmt::Debug for NagaShader {
 }
 
 /// Shader input.
-#[allow(clippy::large_enum_variant)]
 pub enum ShaderInput<'a> {
     Naga(NagaShader),
     SpirV(&'a [u32]),
@@ -2289,7 +2288,7 @@ pub struct ValidationCanary {
 }
 
 impl ValidationCanary {
-    #[allow(dead_code)] // in some configurations this function is dead
+    #[cfg_attr(not(any(gles, vulkan, dx12)), expect(dead_code))]
     fn add(&self, msg: String) {
         self.inner.lock().push(msg);
     }

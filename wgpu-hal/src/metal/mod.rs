@@ -17,7 +17,7 @@ end of the VS buffer table.
 // However, `MTLGpuFamily` is only supported starting MacOS 10.15, whereas our minimum target is MacOS 10.13,
 // See https://github.com/gpuweb/gpuweb/issues/1069 for minimum spec.
 // TODO: Eventually all deprecated features should be abstracted and use new api when available.
-#[allow(deprecated)]
+#[expect(deprecated)]
 mod adapter;
 mod command;
 mod conv;
@@ -190,7 +190,7 @@ bitflags!(
     }
 );
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 #[derive(Clone, Debug)]
 struct PrivateCapabilities {
     family_check: bool,
@@ -300,7 +300,7 @@ struct PrivateDisabilities {
     /// Near depth is not respected properly on some Intel GPUs.
     broken_viewport_near_depth: bool,
     /// Multi-target clears don't appear to work properly on Intel GPUs.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     broken_layered_clear_image: bool,
 }
 
@@ -816,9 +816,8 @@ impl PipelineStageInfo {
 #[derive(Debug)]
 pub struct RenderPipeline {
     raw: metal::RenderPipelineState,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     vs_lib: metal::Library,
-    #[allow(dead_code)]
     fs_lib: Option<metal::Library>,
     vs_info: PipelineStageInfo,
     fs_info: Option<PipelineStageInfo>,
@@ -838,7 +837,7 @@ impl crate::DynRenderPipeline for RenderPipeline {}
 #[derive(Debug)]
 pub struct ComputePipeline {
     raw: metal::ComputePipelineState,
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     cs_lib: metal::Library,
     cs_info: PipelineStageInfo,
     work_group_size: metal::MTLSize,

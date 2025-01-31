@@ -233,7 +233,6 @@ struct Sampling {
 #[cfg_attr(feature = "deserialize", derive(serde::Deserialize))]
 pub struct FunctionInfo {
     /// Validation flags.
-    #[allow(dead_code)]
     flags: ValidationFlags,
     /// Set of shader stages where calling this function is valid.
     pub available_stages: ShaderStages,
@@ -506,7 +505,7 @@ impl FunctionInfo {
     /// [`sampling_set`]: FunctionInfo::sampling_set
     /// [`sampling`]: FunctionInfo::sampling
     /// [`global_uses`]: FunctionInfo::global_uses
-    #[allow(clippy::or_fun_call)]
+    #[expect(clippy::or_fun_call)]
     fn process_expression(
         &mut self,
         handle: Handle<crate::Expression>,
@@ -827,7 +826,7 @@ impl FunctionInfo {
     ///
     /// Returns a `NonUniformControlFlow` error if any of the expressions in the block
     /// require uniformity, but the current flow is non-uniform.
-    #[allow(clippy::or_fun_call)]
+    #[expect(clippy::or_fun_call)]
     fn process_block(
         &mut self,
         statements: &crate::Block,

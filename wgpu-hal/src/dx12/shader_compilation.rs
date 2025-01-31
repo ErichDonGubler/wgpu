@@ -213,7 +213,7 @@ pub(super) fn get_static_dxc_container() -> Result<DxcContainer, crate::DeviceEr
 }
 
 /// Owned PCWSTR
-#[allow(clippy::upper_case_acronyms)]
+#[expect(clippy::upper_case_acronyms)]
 struct OPCWSTR {
     inner: Vec<u16>,
 }

@@ -242,7 +242,7 @@ impl Global {
         unsafe { std::ptr::copy_nonoverlapping(data.as_ptr(), mapping.ptr.as_ptr(), data.len()) };
 
         if !mapping.is_coherent {
-            #[allow(clippy::single_range_in_vec_init)]
+            #[expect(clippy::single_range_in_vec_init)]
             unsafe {
                 device
                     .raw()
@@ -941,8 +941,6 @@ impl Global {
         (id, Some(error))
     }
 
-    // Unsafe-ness of internal calls has little to do with unsafe-ness of this.
-    #[allow(unused_unsafe)]
     /// # Safety
     ///
     /// This function passes SPIR-V binary to the backend as-is and can potentially result in a

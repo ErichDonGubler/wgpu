@@ -3,7 +3,7 @@ use wgpu::{DownlevelFlags, Limits};
 use crate::shader::{shader_input_output_test, InputStorageType, ShaderTest};
 use wgpu_test::{gpu_test, GpuTestConfiguration, TestParameters};
 
-#[allow(non_snake_case)]
+#[expect(non_snake_case)]
 fn create_unpack4xU8_test() -> Vec<ShaderTest> {
     let mut tests = Vec::new();
 
@@ -40,7 +40,7 @@ static UNPACK4xU8: GpuTestConfiguration = GpuTestConfiguration::new()
         shader_input_output_test(ctx, InputStorageType::Storage, create_unpack4xU8_test())
     });
 
-#[allow(non_snake_case)]
+#[expect(non_snake_case)]
 fn create_unpack4xI8_test() -> Vec<ShaderTest> {
     let mut tests = Vec::with_capacity(2);
 
@@ -84,7 +84,7 @@ static UNPACK4xI8: GpuTestConfiguration = GpuTestConfiguration::new()
         shader_input_output_test(ctx, InputStorageType::Storage, create_unpack4xI8_test())
     });
 
-#[allow(non_snake_case)]
+#[expect(non_snake_case)]
 fn create_pack4xU8_test() -> Vec<ShaderTest> {
     let mut tests = Vec::new();
 
@@ -113,7 +113,7 @@ static PACK4xU8: GpuTestConfiguration = GpuTestConfiguration::new()
         shader_input_output_test(ctx, InputStorageType::Storage, create_pack4xU8_test())
     });
 
-#[allow(non_snake_case)]
+#[expect(non_snake_case)]
 fn create_pack4xI8_test() -> Vec<ShaderTest> {
     let mut tests = Vec::with_capacity(2);
 

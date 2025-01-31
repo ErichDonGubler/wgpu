@@ -61,7 +61,7 @@ type WlEglWindowDestroyFun = unsafe extern "system" fn(window: *const raw::c_voi
 
 type EglLabel = *const raw::c_void;
 
-#[allow(clippy::upper_case_acronyms)]
+#[expect(clippy::upper_case_acronyms)]
 type EGLDEBUGPROCKHR = Option<
     unsafe extern "system" fn(
         error: khronos_egl::Enum,
@@ -460,7 +460,6 @@ struct Inner {
     /// Note: the context contains a dummy pbuffer (1x1).
     /// Required for `eglMakeCurrent` on platforms that doesn't supports `EGL_KHR_surfaceless_context`.
     egl: EglContext,
-    #[allow(unused)]
     version: (i32, i32),
     supports_native_window: bool,
     config: khronos_egl::Config,
@@ -893,7 +892,7 @@ impl crate::Instance for Instance {
                 (display, Some(Rc::new(display_owner)), WindowKind::AngleX11)
             } else if client_ext_str.contains("EGL_MESA_platform_surfaceless") {
                 log::warn!("No windowing system present. Using surfaceless platform");
-                #[allow(clippy::unnecessary_literal_unwrap)] // This is only a literal on Emscripten
+                #[cfg_attr(Emscripten, expect(clippy::unnecessary_literal_unwrap))]
                 let egl = egl1_5.expect("Failed to get EGL 1.5 for surfaceless");
                 let display = unsafe {
                     egl.get_platform_display(
@@ -951,7 +950,6 @@ impl crate::Instance for Instance {
         })
     }
 
-    #[cfg_attr(target_os = "macos", allow(unused, unused_mut, unreachable_code))]
     unsafe fn create_surface(
         &self,
         display_handle: raw_window_handle::RawDisplayHandle,
@@ -959,7 +957,7 @@ impl crate::Instance for Instance {
     ) -> Result<Surface, crate::InstanceError> {
         use raw_window_handle::RawWindowHandle as Rwh;
 
-        #[cfg_attr(any(target_os = "android", Emscripten), allow(unused_mut))]
+        #[cfg_attr(Emscripten, expect(unused_mut))]
         let mut inner = self.inner.lock();
 
         match (window_handle, display_handle) {
@@ -1167,7 +1165,7 @@ pub struct Swapchain {
     extent: wgt::Extent3d,
     format: wgt::TextureFormat,
     format_desc: super::TextureFormatDesc,
-    #[allow(unused)]
+    #[expect(unused)]
     sample_type: wgt::TextureSampleType,
 }
 

@@ -13,14 +13,14 @@ impl EnableExtensions {
     }
 
     /// Add an enable-extension to the set requested by a module.
-    #[allow(unreachable_code)]
+    #[expect(unreachable_code)]
     pub(crate) fn add(&mut self, ext: ImplementedEnableExtension) {
         let _field: &mut bool = match ext {};
         *_field = true;
     }
 
     /// Query whether an enable-extension tracked here has been requested.
-    #[allow(unused)]
+    #[expect(unused)]
     pub(crate) const fn contains(&self, ext: ImplementedEnableExtension) -> bool {
         match ext {}
     }
@@ -37,7 +37,7 @@ impl Default for EnableExtensions {
 /// WGSL spec.: <https://www.w3.org/TR/WGSL/#enable-extensions-sec>
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum EnableExtension {
-    #[allow(unused)]
+    #[expect(unused)]
     Implemented(ImplementedEnableExtension),
     Unimplemented(UnimplementedEnableExtension),
 }

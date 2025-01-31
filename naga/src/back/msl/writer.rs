@@ -691,7 +691,6 @@ impl<W: Write> Writer<W> {
 
     /// Finishes writing and returns the output.
     // See https://github.com/rust-lang/rust-clippy/issues/4979.
-    #[allow(clippy::missing_const_for_fn)]
     pub fn finish(self) -> W {
         self.out
     }
@@ -1404,7 +1403,7 @@ impl<W: Write> Writer<W> {
         )
     }
 
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     fn put_possibly_const_expression<C, I, E>(
         &mut self,
         expr_handle: Handle<crate::Expression>,
@@ -2505,7 +2504,6 @@ impl<W: Write> Writer<W> {
     /// [`ReadZeroSkipWrite`]: index::BoundsCheckPolicy::ReadZeroSkipWrite
     /// [`Store`]: crate::Statement::Store
     /// [`Load`]: crate::Expression::Load
-    #[allow(unused_variables)]
     fn put_bounds_checks(
         &mut self,
         mut chain: Handle<crate::Expression>,

@@ -336,7 +336,6 @@ struct ObservationLog {
     buffer: Vec<u8>,
 }
 
-#[allow(trivial_casts)]
 impl ObservationLog {
     /// Create an observation log in `dir` for the current pid and thread.
     fn create(dir: impl AsRef<Path>) -> Result<Self, std::io::Error> {

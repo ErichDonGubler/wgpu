@@ -4200,7 +4200,7 @@ impl<'a, W: Write> Writer<'a, W> {
     }
 
     /// Helper method for writing an `ImageLoad` expression.
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
     fn write_image_load(
         &mut self,
         handle: Handle<crate::Expression>,

@@ -87,7 +87,6 @@ impl RawId {
 pub struct Id<T: Marker>(RawId, PhantomData<T>);
 
 // This type represents Id in a more readable (and editable) way.
-#[allow(dead_code)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 enum SerialId {
     // The only variant forces RON to not ignore "Id"
